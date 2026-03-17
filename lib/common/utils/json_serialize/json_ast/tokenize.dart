@@ -171,8 +171,7 @@ class ObjectNode extends Node {
       _compareDynamicList(children, other.children);
 
   @override
-  // TODO: implement hashCode
-  int get hashCode => super.hashCode;
+  int get hashCode => Object.hash(type, loc, Object.hashAll(children));
 }
 
 class ArrayNode extends Node {
@@ -201,8 +200,7 @@ class ArrayNode extends Node {
       _compareDynamicList(children, other.children);
 
   @override
-  // TODO: implement hashCode
-  int get hashCode => super.hashCode;
+  int get hashCode => Object.hash(type, loc, Object.hashAll(children));
 }
 
 class PropertyNode extends Node {
@@ -250,8 +248,8 @@ class PropertyNode extends Node {
   }
 
   @override
-  // TODO: implement hashCode
-  int get hashCode => super.hashCode;
+  int get hashCode =>
+      Object.hash(type, index, loc, key, value, Object.hashAll(children));
 }
 
 class LiteralNode extends Node {
@@ -288,8 +286,7 @@ class LiteralNode extends Node {
   }
 
   @override
-  // TODO: implement hashCode
-  int get hashCode => super.hashCode;
+  int get hashCode => Object.hash(type, loc, value, raw);
 }
 
 @immutable
@@ -304,8 +301,7 @@ class ValueIndex<T> {
       other is ValueIndex<T> && value == other.value && index == other.index;
 
   @override
-  // TODO: implement hashCode
-  int get hashCode => super.hashCode;
+  int get hashCode => Object.hash(value, index);
 }
 
 // HELPERS

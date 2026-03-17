@@ -16,7 +16,7 @@ abstract class Sample {
   bool overwrite;
 
   /// Store the content that will be written to the file in a String or
-  /// Future <String> in that variable. It is used to fill the file created
+  /// `Future<String>` in that variable. It is used to fill the file created
   /// by path.
   String get content;
 

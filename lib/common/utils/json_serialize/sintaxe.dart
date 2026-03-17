@@ -396,6 +396,6 @@ class ClassDefinition {
   }
 
   @override
-  // TODO: implement hashCode
-  int get hashCode => super.hashCode;
+  int get hashCode => Object.hashAllUnordered(
+      fields.entries.map((entry) => Object.hash(entry.key, entry.value)));
 }
