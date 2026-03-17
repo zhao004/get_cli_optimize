@@ -5,7 +5,12 @@
     "company_domain": "Qual é o domínio da sua empresa?",
     "model_name": "Não foi possível definir o nome do modelo automaticamente, qual nome você deseja usar?",
     "package_already_installed": "pacote: %s já instalado, deseja atualizar?",
-    "lib_not_empty": "Sua pasta lib não está vazia. Tem certeza de que deseja sobrescrever seu aplicativo? \\n AVISO: essa ação é irreversível"
+    "lib_not_empty": "Sua pasta lib não está vazia. Tem certeza de que deseja sobrescrever seu aplicativo? \\n AVISO: essa ação é irreversível",
+    "ios_lang": "qual idioma você deseja usar no ios?",
+    "android_lang": "qual idioma você deseja usar no android?",
+    "use_null_safe": "Deseja usar null safe?",
+    "use_linter": "deseja usar algum linter?",
+    "new_page_name": "qual novo nome para a página?"
   },
   "error": {
     "failed_to_connect": "Falha ao conectar com %s",
@@ -25,9 +30,11 @@
     "folder_not_found": "Pasta %s não encontrada",
     "file_not_found": "Arquivo não encontrado em %s",
     "access_denied": "Acesso negado a %s",
-    "unexpected": "Ocorreu um erro inesperado:"
+    "unexpected": "Ocorreu um erro inesperado:",
+    "no_package_to_remove": "Digite o nome do pacote que você deseja remover"
   },
   "example": "Exemplo:",
+  "warning": "Aviso:",
   "hint": {
     "create": {
       "controller": "Gerar um novo controller",

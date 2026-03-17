@@ -5,6 +5,7 @@ import 'package:process_run/shell_run.dart';
 import '../../../core/generator.dart';
 import '../../../core/internationalization.dart';
 import '../../../core/locales.g.dart';
+import '../../../exception_handler/exceptions/cli_exception.dart';
 import '../logger/log_utils.dart';
 import '../pub_dev/pub_dev_api.dart';
 import '../pubspec/pubspec_lock.dart';
@@ -33,11 +34,9 @@ class ShellUtils {
   ) async {
     LogService.info('Running `flutter create $path` …');
 
- // Note: -i and -a flags are only supported for --template=plugin
- // For regular Flutter projects, Flutter uses Swift/Kotlin by default 
-   await run( 
-       'flutter create --no-pub --org $org "$path"', 
-        verbose: true);
+    // Note: -i and -a flags are only supported for --template=plugin
+    // For regular Flutter projects, Flutter uses Swift/Kotlin by default
+    await run('flutter create --no-pub --org $org "$path"', verbose: true);
   }
 
   static Future<void> update(
@@ -50,7 +49,7 @@ class ShellUtils {
 
       var versionInstalled = await PubspecLock.getVersionCli(disableLog: true);
 
-      if (versionInstalled == versionInPubDev) {
+      if (versionInstalled != null && versionInstalled == versionInPubDev) {
         return LogService.info(
             Translation(LocaleKeys.info_cli_last_version_already_installed.tr)
                 .toString());
@@ -79,8 +78,7 @@ class ShellUtils {
       }
       return LogService.success(LocaleKeys.sucess_update_cli.tr);
     } on Exception catch (err) {
-      LogService.info(err.toString());
-      return LogService.error(LocaleKeys.error_update_cli.tr);
+      throw CliException('${LocaleKeys.error_update_cli.tr}: $err');
     }
   }
 }

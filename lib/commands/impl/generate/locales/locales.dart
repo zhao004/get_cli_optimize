@@ -24,22 +24,23 @@ class GenerateLocalesCommand extends Command {
 
   @override
   Future<void> execute() async {
-    final inputPath = args.isNotEmpty ? args.first : 'assets/locales';
+    final inputPath =
+        args.isNotEmpty ? args.first : await _defaultInputDirectory();
 
     if (!await Directory(inputPath).exists()) {
-      LogService.error(
-          LocaleKeys.error_nonexistent_directory.trArgs([inputPath]));
-      return;
+      throw CliException(
+        LocaleKeys.error_nonexistent_directory.trArgs([inputPath]),
+      );
     }
 
     final files = await Directory(inputPath)
         .list(recursive: false)
         .where((entry) => entry.path.endsWith('.json'))
         .toList();
+    files.sort((first, second) => first.path.compareTo(second.path));
 
     if (files.isEmpty) {
-      LogService.info(LocaleKeys.error_empty_directory.trArgs([inputPath]));
-      return;
+      throw CliException(LocaleKeys.error_empty_directory.trArgs([inputPath]));
     }
 
     final maps = <String, Map<String, dynamic>?>{};
@@ -49,8 +50,7 @@ class GenerateLocalesCommand extends Command {
         final localeKey = basenameWithoutExtension(file.path);
         maps[localeKey] = map as Map<String, dynamic>?;
       } on Exception catch (_) {
-        LogService.error(LocaleKeys.error_invalid_json.trArgs([file.path]));
-        rethrow;
+        throw CliException(LocaleKeys.error_invalid_json.trArgs([file.path]));
       }
     }
 
@@ -68,24 +68,31 @@ class GenerateLocalesCommand extends Command {
       });
     });
 
-    final parsedKeys =
-        keys.map((e) => '\tstatic const $e = \'$e\';').join('\n');
+    final sortedTranslationKeys = keys.toList()..sort();
+    final parsedKeys = sortedTranslationKeys
+        .map((key) => '\tstatic const $key = \'$key\';')
+        .join('\n');
 
     final parsedLocales = StringBuffer('\n');
     final translationsKeys = StringBuffer();
-    locales.forEach((key, value) {
-      parsedLocales.writeln('\tstatic const $key = {');
-      translationsKeys.writeln('\t\t\'$key\' : Locales.$key,');
-      value.forEach((key, value) {
+    final localeNames = locales.keys.toList()..sort();
+    for (final localeName in localeNames) {
+      final values = locales[localeName]!;
+      parsedLocales.writeln('\tstatic const $localeName = {');
+      translationsKeys.writeln('\t\t\'$localeName\': Locales.$localeName,');
+
+      final localeKeys = values.keys.toList()..sort();
+      for (final key in localeKeys) {
+        var value = values[key]!;
         value = _replaceValue(value);
         if (RegExp(r'^[0-9]|[!@#<>?":`~;[\]\\|=+)(*&^%-\s]').hasMatch(key)) {
           throw CliException(
               LocaleKeys.error_special_characters_in_key.trArgs([key]));
         }
         parsedLocales.writeln('\t\t\'$key\': \'$value\',');
-      });
+      }
       parsedLocales.writeln('\t};');
-    });
+    }
 
     var newFileModel =
         Structure.model('locales', 'generate_locales', false, on: onCommand);
@@ -118,11 +125,20 @@ class GenerateLocalesCommand extends Command {
 
   @override
   String? get codeSample =>
-      LogService.code('get generate locales assets/locales \n'
-          'get generate locales assets/locales on locales');
+      LogService.code('get generate locales translations \n'
+          'get generate locales translations on core');
 
   @override
   int get maxParameters => 1;
+
+  Future<String> _defaultInputDirectory() async {
+    const repoTranslations = 'translations';
+    if (await Directory(repoTranslations).exists()) {
+      return repoTranslations;
+    }
+
+    return 'assets/locales';
+  }
 }
 
 String _replaceValue(String value) {

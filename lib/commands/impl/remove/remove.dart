@@ -12,7 +12,7 @@ class RemoveCommand extends Command {
   @override
   Future<void> execute() async {
     for (var package in args) {
-      PubspecUtils.removeDependencies(package);
+      await PubspecUtils.removeDependencies(package);
     }
 
     //if (GetCli.arguments.first == 'remove') {
@@ -27,7 +27,7 @@ class RemoveCommand extends Command {
   bool validate() {
     super.validate();
     if (args.isEmpty) {
-      CliException(LocaleKeys.error_no_package_to_remove.tr,
+      throw CliException(LocaleKeys.error_no_package_to_remove.tr,
           codeSample: codeSample);
     }
     return true;

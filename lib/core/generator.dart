@@ -1,7 +1,7 @@
 import '../commands/commands_list.dart';
 import '../commands/impl/help/help.dart';
 import '../commands/interface/command.dart';
-import '../common/utils/logger/log_utils.dart';
+import '../exception_handler/exceptions/cli_exception.dart';
 
 class GetCli {
   final List<String> _arguments;
@@ -53,8 +53,7 @@ class ErrorCommand extends Command {
   ErrorCommand(this.error);
   @override
   Future<void> execute() async {
-    LogService.error(error);
-    LogService.info('run `get help` to help', false, false);
+    throw CliException(error, codeSample: 'get help');
   }
 
   @override

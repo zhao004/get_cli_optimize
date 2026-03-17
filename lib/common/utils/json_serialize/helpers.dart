@@ -1,10 +1,9 @@
 import 'dart:convert' as convert;
-import 'dart:io';
 import 'dart:math';
 
 import 'package:collection/collection.dart';
 
-import '../logger/log_utils.dart';
+import '../../../exception_handler/exceptions/cli_exception.dart';
 import 'json_ast/json_ast.dart';
 import 'sintaxe.dart';
 
@@ -69,12 +68,10 @@ dynamic decodeJSON(String rawJson) {
   try {
     return convert.json.decode(rawJson);
   } on FormatException catch (e) {
-    LogService.error('invalid json format: '
-        '\n${e.toString().split("FormatException:").last}');
-    if (!Platform.isWindows) exit(0);
-  } on Exception catch (e) {
-    LogService.error('Unexpected error $e');
-    if (!Platform.isWindows) exit(0);
+    throw CliException(
+      'invalid json format: '
+      '\n${e.toString().split("FormatException:").last}',
+    );
   }
 }
 

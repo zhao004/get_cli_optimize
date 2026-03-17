@@ -10,12 +10,14 @@ Future<void> main(List<String> arguments) async {
 
   if (arguments.contains('--debug')) {
     if (command.validate()) {
-      await command.execute().then((value) => checkForUpdate());
+      await command.execute();
+      await checkForUpdate();
     }
   } else {
     try {
       if (command.validate()) {
-        await command.execute().then((value) => checkForUpdate());
+        await command.execute();
+        await checkForUpdate();
       }
     } on Exception catch (e) {
       ExceptionHandler().handle(e);

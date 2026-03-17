@@ -85,15 +85,15 @@ class Node {
 
   Node(this.type, this.loc);
 
-  // Node copyWith({
-  //   String? type,
-  //   Location? loc,
-  // }) {
-  //   return Node(
-  //     type ?? this.type,
-  //     loc ?? this.loc,
-  //   );
-  // }
+// Node copyWith({
+//   String? type,
+//   Location? loc,
+// }) {
+//   return Node(
+//     type ?? this.type,
+//     loc ?? this.loc,
+//   );
+// }
 }
 
 class ValueNode extends Node {
@@ -141,14 +141,14 @@ class Token {
   final int index;
   final String? value;
   Location? loc;
+
   Token(this.type, this.line, this.column, this.index, this.value);
 }
 
 class ObjectNode extends Node {
   final List<PropertyNode> children;
 
-  ObjectNode(
-      [super.type = 'Object', super.loc, List<PropertyNode>? children])
+  ObjectNode([super.type = 'Object', super.loc, List<PropertyNode>? children])
       : children = children ?? <PropertyNode>[];
 
   ObjectNode copyWith({

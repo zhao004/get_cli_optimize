@@ -5,7 +5,12 @@
     "company_domain": "Şirketinizin domain adresi nedir?",
     "model_name": "Model adı otomatik olarak ayarlanamadı, hangi ad kullanılsın?",
     "package_already_installed": "Paket: %s zaten yüklü, güncellemek ister misin?",
-    "lib_not_empty": "lib klasörünüz boş değil. Bu uygulamanın üzerine yazmak istediğinden emin misin? \\n UYARI: Bu işlem geri alınamaz"
+    "lib_not_empty": "lib klasörünüz boş değil. Bu uygulamanın üzerine yazmak istediğinden emin misin? \\n UYARI: Bu işlem geri alınamaz",
+    "ios_lang": "iOS üzerinde hangi dili kullanmak istersiniz?",
+    "android_lang": "Android üzerinde hangi dili kullanmak istersiniz?",
+    "use_null_safe": "Null safety kullanmak ister misiniz?",
+    "use_linter": "Bir linter kullanmak ister misiniz?",
+    "new_page_name": "Sayfa için yeni ad ne olsun?"
   },
   "error": {
     "failed_to_connect": "%s ile bağlantı başarısız oldu",
@@ -25,9 +30,11 @@
     "folder_not_found": "%s klasörü bulunamadı",
     "file_not_found": "%s içinde dosya bulunamadı",
     "access_denied": "%s için erişim engellendi",
-    "unexpected": "Beklenmeyen bir hata meydana geldi:"
+    "unexpected": "Beklenmeyen bir hata meydana geldi:",
+    "no_package_to_remove": "Kaldırmak istediğiniz paketin adını girin"
   },
   "example": "Örneğin:",
+  "warning": "Uyarı:",
   "hint": {
     "create": {
       "controller": "Controller oluşturur",
@@ -60,7 +67,8 @@
   },
   "options": {
     "yes": "Evet!",
-    "no": "Hayır"
+    "no": "Hayır",
+    "rename": "Yeniden adlandırmak istiyorum"
   },
   "optional_parameters": "Opsiyonel parametreler: %s",
   "sucess": {
