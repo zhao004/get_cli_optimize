@@ -10,20 +10,20 @@ import 'locales.g.dart';
 
 class Structure {
   static final Map<String, String> _paths = {
-    'page': Directory(replaceAsExpected(
-                path: '${Directory.current.path}/lib/pages/'))
+    'page': Directory(
+                replaceAsExpected(path: '${Directory.current.path}/lib/pages/'))
             .existsSync()
         ? replaceAsExpected(path: 'lib/pages')
-        : replaceAsExpected(path: 'lib/app/modules'),
-    'widget': replaceAsExpected(path: 'lib/app/widgets/'),
-    'model': replaceAsExpected(path: 'lib/app/data/models'),
+        : replaceAsExpected(path: 'lib/app/pages'),
+    'widget': replaceAsExpected(path: 'lib/app/widgets'),
+    'model': replaceAsExpected(path: 'lib/app/models'),
     'init': replaceAsExpected(path: 'lib/'),
     'route': replaceAsExpected(path: 'lib/routes/'),
-    'repository': replaceAsExpected(path: 'lib/app/data/'),
-    'provider': replaceAsExpected(path: 'lib/app/data'),
+    'repository': replaceAsExpected(path: 'lib/app/database/'),
+    'provider': replaceAsExpected(path: 'lib/app/http'),
     'controller': replaceAsExpected(path: 'lib/app'),
     'binding': replaceAsExpected(path: 'lib/app'),
-    'view': replaceAsExpected(path: 'lib/app/views/'),
+    'view': replaceAsExpected(path: 'lib/app/widgets'),
     //artekko files
     'screen': replaceAsExpected(path: 'lib/presentation'),
     'controller.binding':
@@ -78,6 +78,18 @@ class Structure {
         folderName: folderName,
       ),
       commandName: command,
+    );
+  }
+
+  static bool useFlatPageLayout([String? path]) {
+    final pathToEvaluate = path ?? _paths['page'] ?? '';
+    return safeSplitPath(pathToEvaluate).contains('pages');
+  }
+
+  static void trimPageRootSegments(List<String> pathSplit) {
+    pathSplit.removeWhere(
+      (element) =>
+          element == 'app' || element == 'modules' || element == 'pages',
     );
   }
 

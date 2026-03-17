@@ -6,6 +6,7 @@ import '../../common/utils/logger/log_utils.dart';
 import '../../common/utils/pubspec/pubspec_utils.dart';
 import '../../core/internationalization.dart';
 import '../../core/locales.g.dart';
+import '../../core/structure.dart';
 import '../../extensions.dart';
 import '../../samples/impl/get_route.dart';
 import '../find_file/find_file_by_name.dart';
@@ -32,7 +33,7 @@ void addRoute(String nameRoute, String bindingDir, String viewDir) {
     pathSplit.removeLast();
   }
 
-  pathSplit.removeWhere((element) => element == 'app' || element == 'modules');
+  Structure.trimPageRootSegments(pathSplit);
 
   for (var i = 0; i < pathSplit.length; i++) {
     pathSplit[i] =

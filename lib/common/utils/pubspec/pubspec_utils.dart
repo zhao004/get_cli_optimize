@@ -60,7 +60,7 @@ class PubspecUtils {
 
   static Future<bool> addDependencies(String package,
       {String? version, bool isDev = false, bool runPubGet = true}) async {
-    if (containsPackage(package)) {
+    if (containsPackage(package, isDev)) {
       LogService.info(
           LocaleKeys.ask_package_already_installed.trArgs([package]),
           false,

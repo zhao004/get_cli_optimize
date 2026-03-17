@@ -83,7 +83,7 @@ class CreateControllerCommand extends Command {
       onCommand,
       true,
       sample,
-      'controllers',
+      'controller',
     );
 
     var binindingPath =

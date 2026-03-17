@@ -1,6 +1,5 @@
 import 'dart:io';
 
-
 import 'package:dcli/dcli.dart';
 import 'package:recase/recase.dart';
 
@@ -42,12 +41,22 @@ class CreatePageCommand extends Command {
   String? get hint => LocaleKeys.hint_create_page.tr;
 
   void checkForAlreadyExists(String? name) {
-    var newFileModel =
-        Structure.model(name, 'page', true, on: onCommand, folderName: name);
-    var pathSplit = Structure.safeSplitPath(newFileModel.path!);
-
-    pathSplit.removeLast();
-    var path = pathSplit.join('/');
+    final useFlatPageLayout = Structure.useFlatPageLayout();
+    final newFileModel = Structure.model(
+      name,
+      'page',
+      !useFlatPageLayout,
+      on: onCommand,
+      folderName: name,
+    );
+    late String path;
+    if (useFlatPageLayout) {
+      path = newFileModel.path!;
+    } else {
+      final pathSplit = Structure.safeSplitPath(newFileModel.path!)
+        ..removeLast();
+      path = pathSplit.join('/');
+    }
     path = Structure.replaceAsExpected(path: path);
     if (Directory(path).existsSync()) {
       final menu = Menu(
@@ -77,7 +86,10 @@ class CreatePageCommand extends Command {
 
   void _writeFiles(String path, String name, {bool overwrite = false}) {
     var isServer = PubspecUtils.isServerProject;
-    var extraFolder = PubspecUtils.extraFolder ?? true;
+    final useFlatPageLayout = Structure.useFlatPageLayout(path);
+    var extraFolder =
+        useFlatPageLayout ? false : (PubspecUtils.extraFolder ?? true);
+    var pageFolderName = useFlatPageLayout ? '' : 'controllers';
     var controllerFile = handleFileCreate(
       name,
       'controller',
@@ -89,7 +101,7 @@ class CreatePageCommand extends Command {
         isServer,
         overwrite: overwrite,
       ),
-      'controllers',
+      pageFolderName,
     );
     var controllerDir = Structure.pathToDirImport(controllerFile.path);
     var viewFile = handleFileCreate(
@@ -105,7 +117,7 @@ class CreatePageCommand extends Command {
         isServer,
         overwrite: overwrite,
       ),
-      'views',
+      useFlatPageLayout ? '' : 'views',
     );
     var bindingFile = handleFileCreate(
       name,
@@ -120,7 +132,7 @@ class CreatePageCommand extends Command {
         isServer,
         overwrite: overwrite,
       ),
-      'bindings',
+      useFlatPageLayout ? '' : 'bindings',
     );
 
     addRoute(

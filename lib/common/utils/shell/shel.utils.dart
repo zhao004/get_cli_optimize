@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:process_run/shell_run.dart';
+import 'package:yaml/yaml.dart';
 
 import '../../../core/generator.dart';
 import '../../../core/internationalization.dart';
@@ -12,18 +13,62 @@ import '../pubspec/pubspec_lock.dart';
 
 class ShellUtils {
   static Future<void> pubGet() async {
-    LogService.info('Running `flutter pub get` …');
-    await run('dart pub get', verbose: true);
+    final pubCommand = resolvePubCommand();
+    LogService.info('Running `$pubCommand get` …');
+    await run('$pubCommand get', verbose: true);
   }
 
   static Future<void> addPackage(String package) async {
+    final pubCommand = resolvePubCommand();
     LogService.info('Adding package $package …');
-    await run('dart pub add $package', verbose: true);
+    await run('$pubCommand add $package', verbose: true);
   }
 
   static Future<void> removePackage(String package) async {
+    final pubCommand = resolvePubCommand();
     LogService.info('Removing package $package …');
-    await run('dart pub remove $package', verbose: true);
+    await run('$pubCommand remove $package', verbose: true);
+  }
+
+  static String resolvePubCommand([String? pubspecContent]) {
+    try {
+      final content = pubspecContent ??
+          (File('pubspec.yaml').existsSync()
+              ? File('pubspec.yaml').readAsStringSync()
+              : null);
+      if (content == null || content.trim().isEmpty) {
+        return 'dart pub';
+      }
+
+      final yaml = loadYaml(content);
+      if (yaml is! YamlMap) {
+        return 'dart pub';
+      }
+
+      if (yaml.containsKey('flutter') || _hasFlutterDependency(yaml)) {
+        return 'flutter pub';
+      }
+    } on Exception catch (_) {}
+
+    return 'dart pub';
+  }
+
+  static bool _hasFlutterDependency(YamlMap yaml) {
+    for (final sectionName in ['dependencies', 'dev_dependencies']) {
+      final section = yaml[sectionName];
+      if (section is! YamlMap || !section.containsKey('flutter')) {
+        continue;
+      }
+
+      final dependency = section['flutter'];
+      if (dependency is YamlMap) {
+        return dependency['sdk'] == 'flutter';
+      }
+
+      return true;
+    }
+
+    return false;
   }
 
   static Future<void> flutterCreate(

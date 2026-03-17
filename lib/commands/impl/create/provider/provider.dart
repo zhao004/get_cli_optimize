@@ -1,3 +1,4 @@
+import '../../../../common/utils/pubspec/pubspec_utils.dart';
 import '../../../../core/internationalization.dart';
 import '../../../../core/locales.g.dart';
 import '../../../../functions/create/create_single_file.dart';
@@ -10,15 +11,21 @@ class CreateProviderCommand extends Command {
   @override
   Future<void> execute() async {
     var name = this.name;
-    handleFileCreate(name, 'provider', onCommand, onCommand.isNotEmpty,
-        ProviderSample(name), onCommand.isNotEmpty ? 'providers' : '');
+    handleFileCreate(
+      name,
+      'provider',
+      onCommand,
+      onCommand.isNotEmpty,
+      ProviderSample(name, isServer: PubspecUtils.isServerProject),
+      onCommand.isNotEmpty ? 'http' : '',
+    );
   }
 
   @override
   String? get hint => Translation(LocaleKeys.hint_create_provider).tr;
 
   @override
-  String get codeSample => 'get create provider:user on data';
+  String get codeSample => 'get create provider:user on home';
 
   @override
   int get maxParameters => 0;

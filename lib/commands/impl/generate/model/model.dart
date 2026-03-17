@@ -1,6 +1,5 @@
 import 'dart:io';
 
-
 import 'package:dcli/dcli.dart';
 import 'package:http/http.dart';
 import 'package:path/path.dart' as p;
@@ -8,6 +7,7 @@ import 'package:recase/recase.dart';
 
 import '../../../../common/utils/json_serialize/model_generator.dart';
 import '../../../../common/utils/logger/log_utils.dart';
+import '../../../../common/utils/pubspec/pubspec_utils.dart';
 import '../../../../core/internationalization.dart';
 import '../../../../core/locales.g.dart';
 import '../../../../core/structure.dart';
@@ -48,8 +48,6 @@ class GenerateModelCommand extends Command {
       LogService.info('warning: ${warning.path} ${warning.warning} ');
     }
     if (!containsArg('--skipProvider')) {
-      var pathSplit = Structure.safeSplitPath(modelPath);
-      pathSplit.removeWhere((element) => element == '.' || element == 'lib');
       handleFileCreate(
         name,
         'provider',
@@ -58,9 +56,10 @@ class GenerateModelCommand extends Command {
         ProviderSample(
           name,
           createEndpoints: true,
+          isServer: PubspecUtils.isServerProject,
           modelPath: Structure.pathToDirImport(model.path),
         ),
-        'providers',
+        'http',
       );
     }
   }

@@ -5,6 +5,7 @@ import 'package:recase/recase.dart';
 
 import '../../common/utils/logger/log_utils.dart';
 import '../../common/utils/pubspec/pubspec_utils.dart';
+import '../../core/structure.dart';
 import '../../samples/impl/get_app_pages.dart';
 import '../create/create_single_file.dart';
 import '../find_file/find_file_by_name.dart';
@@ -37,8 +38,7 @@ void addAppPage(String name, String bindingDir, String viewDir) {
     var pathSplit = path.split('/');
     pathSplit.removeLast();
     pathSplit.removeLast();
-    pathSplit
-        .removeWhere((element) => element == 'app' || element == 'modules');
+    Structure.trimPageRootSegments(pathSplit);
     var onPageIndex = -1;
     while (pathSplit.isNotEmpty && onPageIndex == -1) {
       onPageIndex = lines.indexWhere(
