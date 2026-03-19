@@ -1,8 +1,5 @@
 import 'dart:io';
 
-import 'package:dcli/dcli.dart';
-import 'package:recase/recase.dart';
-
 import '../../../../common/menu/menu.dart';
 import '../../../../common/utils/flutter/flutter_toolchain.dart';
 import '../../../../common/utils/logger/log_utils.dart';
@@ -35,9 +32,6 @@ Future<void> createInitGetxPattern() async {
     final dependencyBundle = await _resolveFlutterInitDependencies();
     selectedFeatures.addAll(_askFlutterInitFeatures());
     await _installFlutterInitDependencies(dependencyBundle, selectedFeatures);
-    if (selectedFeatures.contains(_FlutterInitFeature.retrofit)) {
-      httpFileName = _askHttpFileName();
-    }
   }
   var initialDirs = isServerProject
       ? _serverDirectories
@@ -52,7 +46,7 @@ Future<void> createInitGetxPattern() async {
     }
     if (selectedFeatures.contains(_FlutterInitFeature.retrofit)) {
       RetrofitHttpSample(
-        path: 'lib/app/http/$httpFileName.dart',
+        path: 'lib/app/http/$httpFileName',
       ).create();
     }
     if (selectedFeatures.contains(_FlutterInitFeature.jsonSerializable)) {
@@ -66,6 +60,9 @@ Future<void> createInitGetxPattern() async {
     CreatePageCommand().execute(),
   ]);
   createListDirectory(initialDirs);
+  if (!isServerProject && _shouldRunBuildRunner(selectedFeatures)) {
+    await ShellUtils.runBuildRunner();
+  }
 
   LogService.success(Translation(LocaleKeys.sucess_getx_pattern_generated));
 }
@@ -95,7 +92,7 @@ final List<Directory> _serverDirectories = [
   Directory(Structure.replaceAsExpected(path: 'lib/app/pages/')),
 ];
 
-const _defaultHttpClientFileName = 'app_http_client';
+const _defaultHttpClientFileName = 'app_http_client.dart';
 
 Future<FlutterInitDependencyBundle> _resolveFlutterInitDependencies() async {
   final toolchain = await ShellUtils.detectFlutterToolchain();
@@ -167,6 +164,27 @@ List<FlutterInitDependencySpec> _resolveSelectedDependencies(
   return dependenciesByPackage.values.toList();
 }
 
+bool _shouldRunBuildRunner(Set<_FlutterInitFeature> selectedFeatures) {
+  for (final feature in selectedFeatures) {
+    if (_usesBuildRunner(feature)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+bool _usesBuildRunner(_FlutterInitFeature feature) {
+  switch (feature) {
+    case _FlutterInitFeature.drift:
+    case _FlutterInitFeature.jsonSerializable:
+    case _FlutterInitFeature.retrofit:
+      return true;
+    case _FlutterInitFeature.langChain:
+      return false;
+  }
+}
+
 Iterable<String> _packagesForFeature(_FlutterInitFeature feature) sync* {
   if (feature == _FlutterInitFeature.drift) {
     yield 'build_runner';
@@ -193,18 +211,6 @@ Iterable<String> _packagesForFeature(_FlutterInitFeature feature) sync* {
     yield 'langchain';
     yield 'langchain_openai';
   }
-}
-
-String _askHttpFileName() {
-  final rawValue = ask(
-    'Http client file name',
-    defaultValue: _defaultHttpClientFileName,
-  );
-  final sanitized = rawValue.trim().replaceAll('.dart', '');
-  if (sanitized.isEmpty) {
-    return _defaultHttpClientFileName;
-  }
-  return ReCase(sanitized).snakeCase;
 }
 
 enum _FlutterInitFeature {

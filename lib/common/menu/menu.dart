@@ -3,8 +3,21 @@ import 'package:dart_console/dart_console.dart';
 class Menu {
   final List<String> choices;
   final String title;
+  final String? description;
+  final String selectedPrefix;
+  final String unselectedPrefix;
+  final String descriptionPrefix;
+  final bool emphasizeDescription;
 
-  Menu(this.choices, {this.title = ''});
+  Menu(
+    this.choices, {
+    this.title = '',
+    this.description,
+    this.selectedPrefix = '>',
+    this.unselectedPrefix = ' ',
+    this.descriptionPrefix = '',
+    this.emphasizeDescription = false,
+  });
 
   Answer choose() {
     if (choices.isEmpty) {
@@ -20,6 +33,11 @@ class Menu {
       console,
       choices,
       title: title,
+      description: description,
+      selectedPrefix: selectedPrefix,
+      unselectedPrefix: unselectedPrefix,
+      descriptionPrefix: descriptionPrefix,
+      emphasizeDescription: emphasizeDescription,
     ).chooseIndex();
     return Answer(result: choices[index], index: index);
   }
@@ -79,12 +97,22 @@ class _ConsoleMenu {
   final Console console;
   final List<String> choices;
   final String title;
+  final String? description;
+  final String selectedPrefix;
+  final String unselectedPrefix;
+  final String descriptionPrefix;
+  final bool emphasizeDescription;
   var _selectedIndex = 0;
 
   _ConsoleMenu(
     this.console,
     this.choices, {
     required this.title,
+    required this.description,
+    required this.selectedPrefix,
+    required this.unselectedPrefix,
+    required this.descriptionPrefix,
+    required this.emphasizeDescription,
   });
 
   int chooseIndex() {
@@ -100,7 +128,7 @@ class _ConsoleMenu {
         }
       }
     } finally {
-      console.showCursor();
+      _restoreTerminal();
     }
   }
 
@@ -144,9 +172,20 @@ class _ConsoleMenu {
   }
 
   void _printHeader() {
-    console.writeLine();
     if (title.isNotEmpty) {
+      console.setForegroundColor(ConsoleColor.brightWhite);
       console.writeLine(title);
+      console.resetColorAttributes();
+    }
+    if (description != null && description!.isNotEmpty) {
+      if (emphasizeDescription) {
+        console.setForegroundColor(ConsoleColor.brightYellow);
+      }
+      console.writeLine('$descriptionPrefix${description!}');
+      console.resetColorAttributes();
+    }
+    if (title.isNotEmpty || (description != null && description!.isNotEmpty)) {
+      console.writeLine();
     }
   }
 
@@ -161,12 +200,19 @@ class _ConsoleMenu {
     for (var i = 0; i < choices.length; i++) {
       if (i == _selectedIndex) {
         console.setForegroundColor(ConsoleColor.brightGreen);
-        console.writeLine('> ${choices[i]}');
+        console.writeLine('$selectedPrefix ${choices[i]}');
         console.resetColorAttributes();
       } else {
-        console.writeLine('  ${choices[i]}');
+        console.writeLine('$unselectedPrefix ${choices[i]}');
       }
     }
+  }
+
+  void _restoreTerminal() {
+    console.rawMode = false;
+    console.resetColorAttributes();
+    console.showCursor();
+    console.writeLine();
   }
 }
 
@@ -199,7 +245,7 @@ class _ConsoleMultiSelectMenu {
         }
       }
     } finally {
-      console.showCursor();
+      _restoreTerminal();
     }
   }
 
@@ -254,12 +300,14 @@ class _ConsoleMultiSelectMenu {
   }
 
   void _printHeader() {
-    console.writeLine();
     if (title.isNotEmpty) {
       console.writeLine(title);
     }
     if (description != null && description!.isNotEmpty) {
       console.writeLine(description!);
+    }
+    if (title.isNotEmpty || (description != null && description!.isNotEmpty)) {
+      console.writeLine();
     }
   }
 
@@ -283,6 +331,13 @@ class _ConsoleMultiSelectMenu {
         console.writeLine(line);
       }
     }
+  }
+
+  void _restoreTerminal() {
+    console.rawMode = false;
+    console.resetColorAttributes();
+    console.showCursor();
+    console.writeLine();
   }
 }
 

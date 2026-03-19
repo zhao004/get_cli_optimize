@@ -1,11 +1,11 @@
 import 'dart:io';
 
-import 'package:dcli/dcli.dart';
 import 'package:recase/recase.dart';
 
 import '../../../../common/menu/menu.dart';
 import '../../../../common/utils/logger/log_utils.dart';
 import '../../../../common/utils/pubspec/pubspec_utils.dart';
+import '../../../../common/utils/terminal/prompt_utils.dart';
 import '../../../../core/generator.dart';
 import '../../../../core/internationalization.dart';
 import '../../../../core/locales.g.dart';
@@ -72,10 +72,7 @@ class CreatePageCommand extends Command {
       if (result.index == 0) {
         _writeFiles(path, name!, overwrite: true);
       } else if (result.index == 2) {
-        // final dialog = CLI_Dialog();
-        // dialog.addQuestion(LocaleKeys.ask_new_page_name.tr, 'name');
-        // name = dialog.ask()['name'] as String?;
-        var name = ask(LocaleKeys.ask_new_page_name.tr);
+        var name = PromptUtils.ask(LocaleKeys.ask_new_page_name.tr);
         checkForAlreadyExists(name.trim().snakeCase);
       }
     } else {

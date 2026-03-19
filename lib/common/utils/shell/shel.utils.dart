@@ -31,6 +31,12 @@ class ShellUtils {
     await run('$pubCommand remove $package', verbose: true);
   }
 
+  static Future<void> runBuildRunner() async {
+    final command = resolveBuildRunnerCommand();
+    LogService.info('Running `$command` …');
+    await run(command, verbose: true);
+  }
+
   static Future<FlutterToolchainInfo?> detectFlutterToolchain() async {
     if (resolvePubCommand() != 'flutter pub') {
       return null;
@@ -74,6 +80,15 @@ class ShellUtils {
     } on Exception catch (_) {}
 
     return 'dart pub';
+  }
+
+  static String resolveBuildRunnerCommand([String? pubspecContent]) {
+    if (resolvePubCommand(pubspecContent) == 'flutter pub') {
+      return 'flutter pub run build_runner build '
+          '--delete-conflicting-outputs';
+    }
+
+    return 'dart run build_runner build --delete-conflicting-outputs';
   }
 
   static bool _hasFlutterDependency(YamlMap yaml) {

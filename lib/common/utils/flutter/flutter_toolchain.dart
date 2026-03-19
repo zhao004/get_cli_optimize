@@ -114,7 +114,7 @@ class FlutterInitDependencyResolver {
       ),
       FlutterInitDependencySpec(
         'retrofit_generator',
-        version: '9.3.0',
+        version: '8.1.2',
         isDev: true,
       ),
     ],
@@ -150,7 +150,7 @@ class FlutterInitDependencyResolver {
       ),
       FlutterInitDependencySpec(
         'retrofit_generator',
-        version: '9.3.0',
+        version: '8.1.2',
         isDev: true,
       ),
     ],
@@ -160,23 +160,23 @@ class FlutterInitDependencyResolver {
     name: 'latest',
     dependencies: [
       FlutterInitDependencySpec('dio', version: '5.9.2'),
-      FlutterInitDependencySpec('drift', version: '2.22.1'),
+      FlutterInitDependencySpec('drift', version: '2.32.0'),
       FlutterInitDependencySpec('json_annotation', version: '4.9.0'),
       FlutterInitDependencySpec('langchain', version: '0.8.1'),
       FlutterInitDependencySpec('langchain_openai', version: '0.8.1+1'),
       FlutterInitDependencySpec('path_provider', version: '2.1.4'),
-      FlutterInitDependencySpec('retrofit', version: '4.5.0'),
+      FlutterInitDependencySpec('retrofit', version: '4.9.2'),
       FlutterInitDependencySpec('sqlite3_flutter_libs', version: '0.5.42'),
     ],
     devDependencies: [
       FlutterInitDependencySpec(
         'build_runner',
-        version: '2.4.9',
+        version: '2.13.0',
         isDev: true,
       ),
       FlutterInitDependencySpec(
         'drift_dev',
-        version: '2.22.1',
+        version: '2.32.0',
         isDev: true,
       ),
       FlutterInitDependencySpec(
@@ -186,21 +186,75 @@ class FlutterInitDependencyResolver {
       ),
       FlutterInitDependencySpec(
         'retrofit_generator',
-        version: '9.3.0',
+        version: '10.2.3',
         isDev: true,
       ),
     ],
   );
 
   static FlutterInitDependencyBundle resolve(FlutterToolchainInfo? toolchain) {
-    final dartVersion = toolchain?.dartVersion;
-    if (dartVersion != null && dartVersion >= Version.parse('3.8.0')) {
+    final flutterBundle = _resolveFromFlutterVersion(toolchain?.flutterVersion);
+    final dartBundle = _resolveFromDartVersion(toolchain?.dartVersion);
+
+    if (flutterBundle != null && dartBundle != null) {
+      return _minBundle(flutterBundle, dartBundle);
+    }
+
+    return flutterBundle ?? dartBundle ?? _legacyBundle;
+  }
+
+  static FlutterInitDependencyBundle? _resolveFromFlutterVersion(
+    Version? flutterVersion,
+  ) {
+    if (flutterVersion == null) {
+      return null;
+    }
+
+    if (flutterVersion >= Version.parse('3.32.0')) {
       return _latestBundle;
     }
-    if (dartVersion != null && dartVersion >= Version.parse('3.5.0')) {
+    if (flutterVersion >= Version.parse('3.24.0')) {
       return _modernBundle;
     }
 
     return _legacyBundle;
+  }
+
+  static FlutterInitDependencyBundle? _resolveFromDartVersion(
+    Version? dartVersion,
+  ) {
+    if (dartVersion == null) {
+      return null;
+    }
+
+    if (dartVersion >= Version.parse('3.8.0')) {
+      return _latestBundle;
+    }
+    if (dartVersion >= Version.parse('3.5.0')) {
+      return _modernBundle;
+    }
+
+    return _legacyBundle;
+  }
+
+  static FlutterInitDependencyBundle _minBundle(
+    FlutterInitDependencyBundle left,
+    FlutterInitDependencyBundle right,
+  ) {
+    final leftRank = _bundleRank(left);
+    final rightRank = _bundleRank(right);
+    return leftRank <= rightRank ? left : right;
+  }
+
+  static int _bundleRank(FlutterInitDependencyBundle bundle) {
+    switch (bundle.name) {
+      case 'latest':
+        return 2;
+      case 'modern':
+        return 1;
+      case 'legacy':
+      default:
+        return 0;
+    }
   }
 }

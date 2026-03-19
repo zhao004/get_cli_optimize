@@ -15,8 +15,21 @@ Future<bool> createMain() async {
     /// apenas quem chama essa função é o create project e o init,
     /// ambas funções iniciam um projeto e sobrescreve os arquivos
 
+    final promptLines = LocaleKeys.ask_lib_not_empty.tr
+        .split('\n')
+        .map((line) => line.trim())
+        .where((line) => line.isNotEmpty)
+        .toList();
+    final promptDescription = promptLines.length > 1
+        ? _normalizePromptDescription(promptLines.skip(1).join(' '))
+        : null;
     final menu = Menu([LocaleKeys.options_yes.tr, LocaleKeys.options_no.tr],
-        title: LocaleKeys.ask_lib_not_empty.tr);
+        title: promptLines.isNotEmpty ? promptLines.first : '',
+        description: promptDescription,
+        descriptionPrefix: '! ',
+        emphasizeDescription: true,
+        selectedPrefix: '›',
+        unselectedPrefix: ' ');
     final result = menu.choose();
     if (result.index == 1) {
       LogService.info(LocaleKeys.info_no_file_overwritten.tr);
@@ -25,4 +38,14 @@ Future<bool> createMain() async {
     await Directory('lib/').delete(recursive: true);
   }
   return true;
+}
+
+String _normalizePromptDescription(String value) {
+  return value
+      .replaceAllMapped(
+        RegExp(r'([:：])(?=\S)'),
+        (match) => '${match.group(1)} ',
+      )
+      .replaceAll(RegExp(r'\s+'), ' ')
+      .trim();
 }

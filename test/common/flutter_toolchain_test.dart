@@ -69,6 +69,30 @@ void main() {
           .version,
       equals('6.8.0'),
     );
+    expect(
+      bundle.devDependencies
+          .firstWhere(
+            (dependency) => dependency.package == 'retrofit_generator',
+          )
+          .version,
+      equals('8.1.2'),
+    );
+  });
+
+  test('uses modern bundle for Flutter 3.24 and newer', () {
+    final bundle = FlutterInitDependencyResolver.resolve(
+      FlutterToolchainInfo(
+        flutterVersion: FlutterToolchainInfo.parseVersion('3.24.0'),
+      ),
+    );
+
+    expect(bundle.name, equals('modern'));
+    expect(
+      bundle.dependencies
+          .firstWhere((dependency) => dependency.package == 'langchain')
+          .version,
+      equals('0.7.7+2'),
+    );
   });
 
   test('uses modern bundle for dart 3.5 and newer', () {
@@ -123,6 +147,14 @@ void main() {
           .version,
       equals('6.9.0'),
     );
+    expect(
+      modernBundle.devDependencies
+          .firstWhere(
+            (dependency) => dependency.package == 'retrofit_generator',
+          )
+          .version,
+      equals('8.1.2'),
+    );
   });
 
   test('uses latest bundle for dart 3.8 and newer', () {
@@ -135,6 +167,18 @@ void main() {
     expect(bundle.name, equals('latest'));
     expect(
       bundle.dependencies
+          .firstWhere((dependency) => dependency.package == 'drift')
+          .version,
+      equals('2.32.0'),
+    );
+    expect(
+      bundle.devDependencies
+          .firstWhere((dependency) => dependency.package == 'drift_dev')
+          .version,
+      equals('2.32.0'),
+    );
+    expect(
+      bundle.dependencies
           .firstWhere((dependency) => dependency.package == 'langchain')
           .version,
       equals('0.8.1'),
@@ -144,6 +188,65 @@ void main() {
           .firstWhere((dependency) => dependency.package == 'langchain_openai')
           .version,
       equals('0.8.1+1'),
+    );
+    expect(
+      bundle.dependencies
+          .firstWhere((dependency) => dependency.package == 'retrofit')
+          .version,
+      equals('4.9.2'),
+    );
+    expect(
+      bundle.devDependencies
+          .firstWhere((dependency) => dependency.package == 'build_runner')
+          .version,
+      equals('2.13.0'),
+    );
+    expect(
+      bundle.devDependencies
+          .firstWhere(
+            (dependency) => dependency.package == 'retrofit_generator',
+          )
+          .version,
+      equals('10.2.3'),
+    );
+  });
+
+  test('uses latest bundle for Flutter 3.32 and newer', () {
+    final bundle = FlutterInitDependencyResolver.resolve(
+      FlutterToolchainInfo(
+        flutterVersion: FlutterToolchainInfo.parseVersion('3.32.0'),
+      ),
+    );
+
+    expect(bundle.name, equals('latest'));
+    expect(
+      bundle.devDependencies
+          .firstWhere((dependency) => dependency.package == 'drift_dev')
+          .version,
+      equals('2.32.0'),
+    );
+    expect(
+      bundle.dependencies
+          .firstWhere((dependency) => dependency.package == 'langchain_openai')
+          .version,
+      equals('0.8.1+1'),
+    );
+  });
+
+  test('prefers the more conservative bundle when versions conflict', () {
+    final bundle = FlutterInitDependencyResolver.resolve(
+      FlutterToolchainInfo(
+        flutterVersion: FlutterToolchainInfo.parseVersion('3.32.0'),
+        dartVersion: FlutterToolchainInfo.parseVersion('3.4.4'),
+      ),
+    );
+
+    expect(bundle.name, equals('legacy'));
+    expect(
+      bundle.devDependencies
+          .firstWhere((dependency) => dependency.package == 'drift_dev')
+          .version,
+      equals('2.20.3'),
     );
   });
 }

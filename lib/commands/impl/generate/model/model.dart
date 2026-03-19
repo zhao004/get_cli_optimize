@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:dcli/dcli.dart';
 import 'package:http/http.dart';
 import 'package:path/path.dart' as p;
 import 'package:recase/recase.dart';
@@ -8,6 +7,7 @@ import 'package:recase/recase.dart';
 import '../../../../common/utils/json_serialize/model_generator.dart';
 import '../../../../common/utils/logger/log_utils.dart';
 import '../../../../common/utils/pubspec/pubspec_utils.dart';
+import '../../../../common/utils/terminal/prompt_utils.dart';
 import '../../../../core/internationalization.dart';
 import '../../../../core/locales.g.dart';
 import '../../../../core/structure.dart';
@@ -24,11 +24,7 @@ class GenerateModelCommand extends Command {
   Future<void> execute() async {
     var name = p.basenameWithoutExtension(withArgument).pascalCase;
     if (withArgument.isEmpty) {
-      // final dialog = CLI_Dialog(questions: [
-      //   [LocaleKeys.ask_model_name.tr, 'name']
-      // ]);
-      // var result = dialog.ask()['name'] as String;
-      var result = ask(LocaleKeys.ask_model_name.tr);
+      var result = PromptUtils.ask(LocaleKeys.ask_model_name.tr);
       name = result.pascalCase;
     }
 

@@ -1,12 +1,12 @@
 import 'dart:io';
 
-import 'package:dcli/dcli.dart';
 import 'package:path/path.dart' as p;
 import 'package:recase/recase.dart';
 
 import '../../../../common/menu/menu.dart';
 import '../../../../common/utils/pubspec/pubspec_utils.dart';
 import '../../../../common/utils/shell/shel.utils.dart';
+import '../../../../common/utils/terminal/prompt_utils.dart';
 import '../../../../core/internationalization.dart';
 import '../../../../core/locales.g.dart';
 import '../../../../core/structure.dart';
@@ -27,10 +27,7 @@ class CreateProjectCommand extends Command {
     final result = menu.choose();
     String? nameProject = name;
     if (name == '.') {
-      // final dialog = CLI_Dialog(questions: [
-      //   [LocaleKeys.ask_name_to_project.tr, 'name']
-      // ]);
-      nameProject = ask(LocaleKeys.ask_name_to_project.tr);
+      nameProject = PromptUtils.ask(LocaleKeys.ask_name_to_project.tr);
     }
 
     var path = Structure.replaceAsExpected(
@@ -48,7 +45,7 @@ class CreateProjectCommand extends Command {
       //   ]
       // ]);
 
-      var org = ask(
+      var org = PromptUtils.ask(
         '${LocaleKeys.ask_company_domain.tr} \x1B[33m '
         '${LocaleKeys.example.tr} com.yourcompany \x1B[0m',
       );
