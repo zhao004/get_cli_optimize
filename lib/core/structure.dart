@@ -93,6 +93,24 @@ class Structure {
     );
   }
 
+  static List<String> routePathSegments(String path,
+      {bool removeLeafFolder = false}) {
+    final pathSplit = safeSplitPath(path);
+    if (pathSplit.isEmpty) {
+      return pathSplit;
+    }
+
+    pathSplit.removeLast();
+
+    if (removeLeafFolder && !useFlatPageLayout(path) && pathSplit.isNotEmpty) {
+      pathSplit.removeLast();
+    }
+
+    pathSplit.removeWhere((element) => element == '.' || element == 'lib');
+    trimPageRootSegments(pathSplit);
+    return pathSplit;
+  }
+
   static String replaceAsExpected({required String path}) {
     if (path.contains('\\')) {
       if (Platform.isLinux || Platform.isMacOS) {

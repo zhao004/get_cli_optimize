@@ -59,21 +59,30 @@ class PubspecUtils {
   static bool? get extraFolder => _extraFolder.value;
 
   static Future<bool> addDependencies(String package,
-      {String? version, bool isDev = false, bool runPubGet = true}) async {
+      {String? version,
+      bool isDev = false,
+      bool runPubGet = true,
+      bool promptIfExists = true}) async {
     if (containsPackage(package, isDev)) {
-      LogService.info(
-          LocaleKeys.ask_package_already_installed.trArgs([package]),
-          false,
-          false);
-      final menu = Menu(
-        [
-          LocaleKeys.options_yes.tr,
-          LocaleKeys.options_no.tr,
-        ],
-      );
-      final result = menu.choose();
-      if (result.index != 0) {
+      if (version != null && dependencyVersion(package, isDev) == version) {
         return false;
+      }
+
+      if (promptIfExists) {
+        LogService.info(
+            LocaleKeys.ask_package_already_installed.trArgs([package]),
+            false,
+            false);
+        final menu = Menu(
+          [
+            LocaleKeys.options_yes.tr,
+            LocaleKeys.options_no.tr,
+          ],
+        );
+        final result = menu.choose();
+        if (result.index != 0) {
+          return false;
+        }
       }
     }
 
@@ -109,6 +118,23 @@ class PubspecUtils {
     return true;
   }
 
+  static Future<bool> ensureDependency(String package,
+      {required String version,
+      bool isDev = false,
+      bool runPubGet = true}) async {
+    if (dependencyVersion(package, isDev) == version) {
+      return false;
+    }
+
+    return addDependencies(
+      package,
+      version: version,
+      isDev: isDev,
+      runPubGet: runPubGet,
+      promptIfExists: false,
+    );
+  }
+
   static Future<void> removeDependencies(String package,
       {bool logger = true}) async {
     if (logger) LogService.info('Removing package: "$package"');
@@ -141,6 +167,24 @@ class PubspecUtils {
   static bool containsPackage(String package, [bool isDev = false]) {
     var dependencies = isDev ? pubSpec.devDependencies : pubSpec.dependencies;
     return dependencies.containsKey(package.trim());
+  }
+
+  static String? dependencyVersion(String package, [bool isDev = false]) {
+    final sectionName = isDev ? 'dev_dependencies' : 'dependencies';
+    final dependencies = pubspecJson[sectionName];
+    if (dependencies is! YamlMap || !dependencies.containsKey(package.trim())) {
+      return null;
+    }
+
+    final value = dependencies[package.trim()];
+    if (value is String) {
+      return value.trim();
+    }
+    if (value is YamlMap && value['version'] is String) {
+      return (value['version'] as String).trim();
+    }
+
+    return null;
   }
 
   static bool get nullSafeSupport {

@@ -23,17 +23,10 @@ void addRoute(String nameRoute, String bindingDir, String viewDir) {
     routesFile = File(RouteSample().path);
     // content = routesFile.readAsStringSync();
   }
-  var pathSplit = viewDir.split('/');
-
-  ///remove file
-  pathSplit.removeLast();
-
-  ///remove view folder
-  if (PubspecUtils.extraFolder ?? true) {
-    pathSplit.removeLast();
-  }
-
-  Structure.trimPageRootSegments(pathSplit);
+  final pathSplit = Structure.routePathSegments(
+    viewDir,
+    removeLeafFolder: PubspecUtils.extraFolder ?? true,
+  );
 
   for (var i = 0; i < pathSplit.length; i++) {
     pathSplit[i] =
@@ -44,8 +37,12 @@ void addRoute(String nameRoute, String bindingDir, String viewDir) {
   var declareRoute = 'static const ${nameRoute.snakeCase.toUpperCase()} =';
   var line = "$declareRoute '/$route';";
   if (supportChildrenRoutes) {
-    line = '$declareRoute ${_pathsToRoute(pathSplit)};';
-    var linePath = "$declareRoute '/${pathSplit.last}';";
+    final routePath =
+        pathSplit.isEmpty ? nameRoute.snakeCase : _pathsToRoute(pathSplit);
+    line = '$declareRoute $routePath;';
+    final currentPath =
+        pathSplit.isEmpty ? nameRoute.snakeCase : pathSplit.last;
+    var linePath = "$declareRoute '/$currentPath';";
     routesFile.appendClassContent('_Paths', linePath);
   }
   routesFile.appendClassContent('Routes', line);

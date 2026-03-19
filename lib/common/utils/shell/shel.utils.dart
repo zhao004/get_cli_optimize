@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:process_run/shell_run.dart';
 import 'package:yaml/yaml.dart';
 
+import '../flutter/flutter_toolchain.dart';
 import '../../../core/generator.dart';
 import '../../../core/internationalization.dart';
 import '../../../core/locales.g.dart';
@@ -28,6 +29,28 @@ class ShellUtils {
     final pubCommand = resolvePubCommand();
     LogService.info('Removing package $package …');
     await run('$pubCommand remove $package', verbose: true);
+  }
+
+  static Future<FlutterToolchainInfo?> detectFlutterToolchain() async {
+    if (resolvePubCommand() != 'flutter pub') {
+      return null;
+    }
+
+    try {
+      final result = await Process.run('flutter', ['--version', '--machine']);
+      if (result.exitCode != 0) {
+        return null;
+      }
+
+      final stdout = result.stdout;
+      if (stdout is! String || stdout.trim().isEmpty) {
+        return null;
+      }
+
+      return FlutterToolchainInfo.fromMachineJson(stdout);
+    } on Exception {
+      return null;
+    }
   }
 
   static String resolvePubCommand([String? pubspecContent]) {

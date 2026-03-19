@@ -29,4 +29,22 @@ void main() {
 
     expect(segments, equals(['home', 'detail']));
   });
+
+  test('route path segments keep page folder names in flat layout', () {
+    final segments = Structure.routePathSegments(
+      'lib/app/pages/home/home_view.dart',
+      removeLeafFolder: true,
+    );
+
+    expect(segments, equals(['home']));
+  });
+
+  test('route path segments drop views folder in legacy layout', () {
+    final segments = Structure.routePathSegments(
+      'lib/app/modules/home/views/home_view.dart',
+      removeLeafFolder: true,
+    );
+
+    expect(segments, equals(['home']));
+  });
 }

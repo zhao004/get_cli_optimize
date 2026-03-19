@@ -35,10 +35,10 @@ void addAppPage(String name, String bindingDir, String viewDir) {
   var tabEspaces = 2;
   if (supportChildrenRoutes) {
     routesOrPath = '_Paths';
-    var pathSplit = path.split('/');
-    pathSplit.removeLast();
-    pathSplit.removeLast();
-    Structure.trimPageRootSegments(pathSplit);
+    final pathSplit = Structure.routePathSegments(
+      path,
+      removeLeafFolder: PubspecUtils.extraFolder ?? true,
+    );
     var onPageIndex = -1;
     while (pathSplit.isNotEmpty && onPageIndex == -1) {
       onPageIndex = lines.indexWhere(

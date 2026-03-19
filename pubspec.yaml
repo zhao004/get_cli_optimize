@@ -10,6 +10,7 @@ dependencies:
   #  archive: ^3.1.2
   ansicolor: 2.0.3
   collection: 1.18.0
+  dart_console: 4.1.2
   dart_style: 2.3.6
   dcli: 8.4.2
   http: 1.1.0
