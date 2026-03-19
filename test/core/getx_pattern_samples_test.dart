@@ -4,6 +4,7 @@ import 'package:get_cli/samples/impl/getx_pattern/database_table.dart';
 import 'package:get_cli/samples/impl/getx_pattern/database_type.dart';
 import 'package:get_cli/samples/impl/getx_pattern/http_client.dart';
 import 'package:get_cli/samples/impl/getx_pattern/json_serializable_model.dart';
+import 'package:get_cli/samples/impl/getx_pattern/langchain_agent.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -79,5 +80,21 @@ void main() {
     expect(sample.content, contains('class AppUser'));
     expect(sample.content, contains('factory AppUser.fromJson'));
     expect(sample.content, contains('Map<String, dynamic> toJson()'));
+  });
+
+  test('langchain sample targets the ai folder', () {
+    final sample = LangChainAgentSample();
+
+    expect(sample.path, equals('lib/app/ai/app_ai_agent.dart'));
+    expect(
+        sample.content, contains("import 'package:langchain/langchain.dart';"));
+    expect(
+      sample.content,
+      contains("import 'package:langchain_openai/langchain_openai.dart';"),
+    );
+    expect(sample.content, contains('class AppAiAgent'));
+    expect(sample.content, contains('ChatOpenAIOptions(model: model)'));
+    expect(sample.content, contains('ChatPromptTemplate.fromTemplates'));
+    expect(sample.content, contains('StringOutputParser()'));
   });
 }

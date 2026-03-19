@@ -52,6 +52,18 @@ void main() {
       equals('4.9.0'),
     );
     expect(
+      bundle.dependencies
+          .firstWhere((dependency) => dependency.package == 'langchain')
+          .version,
+      equals('0.7.4'),
+    );
+    expect(
+      bundle.dependencies
+          .firstWhere((dependency) => dependency.package == 'langchain_openai')
+          .version,
+      equals('0.7.0'),
+    );
+    expect(
       bundle.devDependencies
           .firstWhere((dependency) => dependency.package == 'json_serializable')
           .version,
@@ -94,10 +106,44 @@ void main() {
       equals('4.9.0'),
     );
     expect(
+      modernBundle.dependencies
+          .firstWhere((dependency) => dependency.package == 'langchain')
+          .version,
+      equals('0.7.7+2'),
+    );
+    expect(
+      modernBundle.dependencies
+          .firstWhere((dependency) => dependency.package == 'langchain_openai')
+          .version,
+      equals('0.7.3'),
+    );
+    expect(
       modernBundle.devDependencies
           .firstWhere((dependency) => dependency.package == 'json_serializable')
           .version,
       equals('6.9.0'),
+    );
+  });
+
+  test('uses latest bundle for dart 3.8 and newer', () {
+    final bundle = FlutterInitDependencyResolver.resolve(
+      FlutterToolchainInfo(
+        dartVersion: FlutterToolchainInfo.parseVersion('3.8.0'),
+      ),
+    );
+
+    expect(bundle.name, equals('latest'));
+    expect(
+      bundle.dependencies
+          .firstWhere((dependency) => dependency.package == 'langchain')
+          .version,
+      equals('0.8.1'),
+    );
+    expect(
+      bundle.dependencies
+          .firstWhere((dependency) => dependency.package == 'langchain_openai')
+          .version,
+      equals('0.8.1+1'),
     );
   });
 }

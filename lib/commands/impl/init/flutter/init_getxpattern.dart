@@ -20,6 +20,7 @@ import '../../../../samples/impl/getx_pattern/database_type.dart';
 import '../../../../samples/impl/getx_pattern/get_main.dart';
 import '../../../../samples/impl/getx_pattern/http_client.dart';
 import '../../../../samples/impl/getx_pattern/json_serializable_model.dart';
+import '../../../../samples/impl/getx_pattern/langchain_agent.dart';
 import '../../commads_export.dart';
 import '../../install/install_get.dart';
 
@@ -57,6 +58,9 @@ Future<void> createInitGetxPattern() async {
     if (selectedFeatures.contains(_FlutterInitFeature.jsonSerializable)) {
       JsonSerializableModelSample().create();
     }
+    if (selectedFeatures.contains(_FlutterInitFeature.langChain)) {
+      LangChainAgentSample().create();
+    }
   }
   await Future.wait([
     CreatePageCommand().execute(),
@@ -81,6 +85,10 @@ final List<Directory> _flutterDatabaseDirectories = [
 
 final List<Directory> _flutterHttpDirectories = [
   Directory(Structure.replaceAsExpected(path: 'lib/app/http/')),
+];
+
+final List<Directory> _flutterAiDirectories = [
+  Directory(Structure.replaceAsExpected(path: 'lib/app/ai/')),
 ];
 
 final List<Directory> _serverDirectories = [
@@ -120,6 +128,9 @@ List<Directory> _flutterDirectories(Set<_FlutterInitFeature> selectedFeatures) {
   }
   if (selectedFeatures.contains(_FlutterInitFeature.retrofit)) {
     directories.addAll(_flutterHttpDirectories);
+  }
+  if (selectedFeatures.contains(_FlutterInitFeature.langChain)) {
+    directories.addAll(_flutterAiDirectories);
   }
 
   return directories;
@@ -177,6 +188,11 @@ Iterable<String> _packagesForFeature(_FlutterInitFeature feature) sync* {
     yield 'json_annotation';
     yield 'json_serializable';
   }
+
+  if (feature == _FlutterInitFeature.langChain) {
+    yield 'langchain';
+    yield 'langchain_openai';
+  }
 }
 
 String _askHttpFileName() {
@@ -194,6 +210,7 @@ String _askHttpFileName() {
 enum _FlutterInitFeature {
   drift,
   jsonSerializable,
+  langChain,
   retrofit,
 }
 
@@ -212,6 +229,10 @@ const _flutterInitFeatureOptions = [
   _FlutterInitFeatureOption(
     _FlutterInitFeature.jsonSerializable,
     'JSON serialization (json_annotation, json_serializable)',
+  ),
+  _FlutterInitFeatureOption(
+    _FlutterInitFeature.langChain,
+    'LangChain AI agent (langchain, langchain_openai)',
   ),
   _FlutterInitFeatureOption(
     _FlutterInitFeature.retrofit,

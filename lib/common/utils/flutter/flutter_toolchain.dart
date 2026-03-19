@@ -90,6 +90,8 @@ class FlutterInitDependencyResolver {
       FlutterInitDependencySpec('dio', version: '5.9.2'),
       FlutterInitDependencySpec('drift', version: '2.20.3'),
       FlutterInitDependencySpec('json_annotation', version: '4.9.0'),
+      FlutterInitDependencySpec('langchain', version: '0.7.4'),
+      FlutterInitDependencySpec('langchain_openai', version: '0.7.0'),
       FlutterInitDependencySpec('path_provider', version: '2.1.4'),
       FlutterInitDependencySpec('retrofit', version: '4.5.0'),
       FlutterInitDependencySpec('sqlite3_flutter_libs', version: '0.5.42'),
@@ -124,6 +126,44 @@ class FlutterInitDependencyResolver {
       FlutterInitDependencySpec('dio', version: '5.9.2'),
       FlutterInitDependencySpec('drift', version: '2.22.1'),
       FlutterInitDependencySpec('json_annotation', version: '4.9.0'),
+      FlutterInitDependencySpec('langchain', version: '0.7.7+2'),
+      FlutterInitDependencySpec('langchain_openai', version: '0.7.3'),
+      FlutterInitDependencySpec('path_provider', version: '2.1.4'),
+      FlutterInitDependencySpec('retrofit', version: '4.5.0'),
+      FlutterInitDependencySpec('sqlite3_flutter_libs', version: '0.5.42'),
+    ],
+    devDependencies: [
+      FlutterInitDependencySpec(
+        'build_runner',
+        version: '2.4.9',
+        isDev: true,
+      ),
+      FlutterInitDependencySpec(
+        'drift_dev',
+        version: '2.22.1',
+        isDev: true,
+      ),
+      FlutterInitDependencySpec(
+        'json_serializable',
+        version: '6.9.0',
+        isDev: true,
+      ),
+      FlutterInitDependencySpec(
+        'retrofit_generator',
+        version: '9.3.0',
+        isDev: true,
+      ),
+    ],
+  );
+
+  static const _latestBundle = FlutterInitDependencyBundle(
+    name: 'latest',
+    dependencies: [
+      FlutterInitDependencySpec('dio', version: '5.9.2'),
+      FlutterInitDependencySpec('drift', version: '2.22.1'),
+      FlutterInitDependencySpec('json_annotation', version: '4.9.0'),
+      FlutterInitDependencySpec('langchain', version: '0.8.1'),
+      FlutterInitDependencySpec('langchain_openai', version: '0.8.1+1'),
       FlutterInitDependencySpec('path_provider', version: '2.1.4'),
       FlutterInitDependencySpec('retrofit', version: '4.5.0'),
       FlutterInitDependencySpec('sqlite3_flutter_libs', version: '0.5.42'),
@@ -154,6 +194,9 @@ class FlutterInitDependencyResolver {
 
   static FlutterInitDependencyBundle resolve(FlutterToolchainInfo? toolchain) {
     final dartVersion = toolchain?.dartVersion;
+    if (dartVersion != null && dartVersion >= Version.parse('3.8.0')) {
+      return _latestBundle;
+    }
     if (dartVersion != null && dartVersion >= Version.parse('3.5.0')) {
       return _modernBundle;
     }

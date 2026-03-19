@@ -88,8 +88,7 @@ class _ConsoleMenu {
   });
 
   int chooseIndex() {
-    _printHeader();
-    _renderChoices();
+    _redraw();
 
     try {
       console.hideCursor();
@@ -133,7 +132,7 @@ class _ConsoleMenu {
       return;
     }
     _selectedIndex--;
-    _rewriteChoices();
+    _redraw();
   }
 
   void _moveDown() {
@@ -141,7 +140,7 @@ class _ConsoleMenu {
       return;
     }
     _selectedIndex++;
-    _rewriteChoices();
+    _redraw();
   }
 
   void _printHeader() {
@@ -151,11 +150,10 @@ class _ConsoleMenu {
     }
   }
 
-  void _rewriteChoices() {
-    for (var i = 0; i < choices.length; i++) {
-      console.cursorUp();
-      console.eraseLine();
-    }
+  void _redraw() {
+    console.clearScreen();
+    console.resetCursorPosition();
+    _printHeader();
     _renderChoices();
   }
 
@@ -189,8 +187,7 @@ class _ConsoleMultiSelectMenu {
   });
 
   List<int> chooseIndexes() {
-    _printHeader();
-    _renderChoices();
+    _redraw();
 
     try {
       console.hideCursor();
@@ -236,7 +233,7 @@ class _ConsoleMultiSelectMenu {
       return;
     }
     _cursorIndex--;
-    _rewriteChoices();
+    _redraw();
   }
 
   void _moveDown() {
@@ -244,7 +241,7 @@ class _ConsoleMultiSelectMenu {
       return;
     }
     _cursorIndex++;
-    _rewriteChoices();
+    _redraw();
   }
 
   void _toggleCurrent() {
@@ -253,7 +250,7 @@ class _ConsoleMultiSelectMenu {
     } else {
       selectedIndexes.add(_cursorIndex);
     }
-    _rewriteChoices();
+    _redraw();
   }
 
   void _printHeader() {
@@ -266,11 +263,10 @@ class _ConsoleMultiSelectMenu {
     }
   }
 
-  void _rewriteChoices() {
-    for (var i = 0; i < choices.length; i++) {
-      console.cursorUp();
-      console.eraseLine();
-    }
+  void _redraw() {
+    console.clearScreen();
+    console.resetCursorPosition();
+    _printHeader();
     _renderChoices();
   }
 
