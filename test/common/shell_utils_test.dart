@@ -62,4 +62,31 @@ dependencies:
       equals('dart run build_runner build --delete-conflicting-outputs'),
     );
   });
+
+  test('builds one pub add command for multiple packages', () {
+    const flutterPubspec = '''
+name: flutter_project
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+dependencies:
+  flutter:
+    sdk: flutter
+flutter:
+  uses-material-design: true
+''';
+
+    expect(
+      ShellUtils.resolveAddPackagesCommand(
+        [
+          'dio:>=5.9.2 <6.0.0',
+          'dev:build_runner:>=2.4.13 <2.7.0',
+        ],
+        flutterPubspec,
+      ),
+      equals(
+        'flutter pub add "dio:>=5.9.2 <6.0.0" '
+        '"dev:build_runner:>=2.4.13 <2.7.0"',
+      ),
+    );
+  });
 }

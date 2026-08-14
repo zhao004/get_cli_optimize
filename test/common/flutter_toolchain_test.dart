@@ -26,7 +26,7 @@ void main() {
     expect(version.toString(), equals('3.5.0'));
   });
 
-  test('uses legacy bundle for older dart sdk versions', () {
+  test('falls back to legacy bundle when toolchain is unknown', () {
     const toolchain = FlutterToolchainInfo(
       dartVersion: null,
     );
@@ -36,46 +36,69 @@ void main() {
     expect(
       bundle.dependencies
           .firstWhere((dependency) => dependency.package == 'drift')
-          .version,
-      equals('2.20.3'),
+          .constraint,
+      equals('^2.0.0'),
     );
     expect(
       bundle.devDependencies
           .firstWhere((dependency) => dependency.package == 'drift_dev')
-          .version,
-      equals('2.20.3'),
+          .constraint,
+      equals('^2.0.0'),
     );
     expect(
       bundle.dependencies
           .firstWhere((dependency) => dependency.package == 'json_annotation')
-          .version,
-      equals('4.9.0'),
-    );
-    expect(
-      bundle.dependencies
-          .firstWhere((dependency) => dependency.package == 'langchain')
-          .version,
-      equals('0.7.4'),
-    );
-    expect(
-      bundle.dependencies
-          .firstWhere((dependency) => dependency.package == 'langchain_openai')
-          .version,
-      equals('0.7.0'),
+          .constraint,
+      equals('^4.7.0'),
     );
     expect(
       bundle.devDependencies
           .firstWhere((dependency) => dependency.package == 'json_serializable')
-          .version,
-      equals('6.8.0'),
+          .constraint,
+      equals('^6.5.0'),
     );
     expect(
       bundle.devDependencies
           .firstWhere(
             (dependency) => dependency.package == 'retrofit_generator',
           )
-          .version,
-      equals('8.1.2'),
+          .constraint,
+      equals('^4.2.0'),
+    );
+    expect(
+      bundle.dependencies
+          .firstWhere((dependency) => dependency.package == 'dio')
+          .constraint,
+      equals('^4.0.6'),
+    );
+    expect(
+      bundle.dependencies
+          .firstWhere((dependency) => dependency.package == 'retrofit')
+          .constraint,
+      equals('^3.3.1'),
+    );
+    expect(bundle.supportsPackage('langchain'), isFalse);
+  });
+
+  test('uses transitional bundle for Flutter 3.22 and newer', () {
+    final bundle = FlutterInitDependencyResolver.resolve(
+      FlutterToolchainInfo(
+        flutterVersion: FlutterToolchainInfo.parseVersion('3.22.0'),
+      ),
+    );
+
+    expect(bundle.name, equals('transitional'));
+    expect(
+      bundle.dependencies
+          .firstWhere((dependency) => dependency.package == 'langchain')
+          .constraint,
+      equals('>=0.5.0 <0.6.0'),
+    );
+    expect(
+      bundle.devDependencies
+          .firstWhere((dependency) => dependency.package == 'build_runner')
+          .constraint,
+      equals('^2.4.0'),
     );
   });
 
@@ -90,20 +113,80 @@ void main() {
     expect(
       bundle.dependencies
           .firstWhere((dependency) => dependency.package == 'langchain')
-          .version,
-      equals('0.7.7+2'),
+          .constraint,
+      equals('>=0.6.0 <0.7.0'),
+    );
+    expect(
+      bundle.devDependencies
+          .firstWhere((dependency) => dependency.package == 'build_runner')
+          .constraint,
+      equals('^2.4.0'),
     );
   });
 
-  test('uses modern bundle for dart 3.5 and newer', () {
-    final bundle = FlutterInitDependencyResolver.resolve(
+  test('uses transitional bundle for dart 3.0 to 3.4', () {
+    final legacyBundle = FlutterInitDependencyResolver.resolve(
       const FlutterToolchainInfo(
         dartVersion: null,
       ),
     );
 
-    expect(bundle.name, equals('legacy'));
+    expect(legacyBundle.name, equals('legacy'));
 
+    final transitionalBundle = FlutterInitDependencyResolver.resolve(
+      FlutterToolchainInfo(
+        dartVersion: FlutterToolchainInfo.parseVersion('3.0.0'),
+      ),
+    );
+
+    expect(transitionalBundle.name, equals('transitional'));
+    expect(
+      transitionalBundle.dependencies
+          .firstWhere((dependency) => dependency.package == 'drift')
+          .constraint,
+      equals('^2.10.0'),
+    );
+    expect(
+      transitionalBundle.devDependencies
+          .firstWhere((dependency) => dependency.package == 'drift_dev')
+          .constraint,
+      equals('^2.10.0'),
+    );
+    expect(
+      transitionalBundle.dependencies
+          .firstWhere((dependency) => dependency.package == 'json_annotation')
+          .constraint,
+      equals('^4.8.0'),
+    );
+    expect(
+      transitionalBundle.dependencies
+          .firstWhere((dependency) => dependency.package == 'langchain')
+          .constraint,
+      equals('>=0.5.0 <0.6.0'),
+    );
+    expect(
+      transitionalBundle.dependencies
+          .firstWhere((dependency) => dependency.package == 'langchain_openai')
+          .constraint,
+      equals('>=0.5.0 <0.6.0'),
+    );
+    expect(
+      transitionalBundle.devDependencies
+          .firstWhere((dependency) => dependency.package == 'json_serializable')
+          .constraint,
+      equals('^6.6.0'),
+    );
+    expect(
+      transitionalBundle.devDependencies
+          .firstWhere(
+            (dependency) => dependency.package == 'retrofit_generator',
+          )
+          .constraint,
+      equals('^7.0.0'),
+    );
+  });
+
+  test('uses modern bundle for dart 3.5 and newer', () {
     final modernBundle = FlutterInitDependencyResolver.resolve(
       FlutterToolchainInfo(
         dartVersion: FlutterToolchainInfo.parseVersion('3.5.0'),
@@ -114,46 +197,58 @@ void main() {
     expect(
       modernBundle.dependencies
           .firstWhere((dependency) => dependency.package == 'drift')
-          .version,
-      equals('2.22.1'),
+          .constraint,
+      equals('^2.20.0'),
     );
     expect(
       modernBundle.devDependencies
           .firstWhere((dependency) => dependency.package == 'drift_dev')
-          .version,
-      equals('2.22.1'),
+          .constraint,
+      equals('^2.20.0'),
     );
     expect(
       modernBundle.dependencies
           .firstWhere((dependency) => dependency.package == 'json_annotation')
-          .version,
-      equals('4.9.0'),
+          .constraint,
+      equals('^4.8.1'),
     );
     expect(
       modernBundle.dependencies
           .firstWhere((dependency) => dependency.package == 'langchain')
-          .version,
-      equals('0.7.7+2'),
+          .constraint,
+      equals('>=0.6.0 <0.7.0'),
     );
     expect(
       modernBundle.dependencies
           .firstWhere((dependency) => dependency.package == 'langchain_openai')
-          .version,
-      equals('0.7.3'),
+          .constraint,
+      equals('>=0.5.0 <0.6.0'),
     );
     expect(
       modernBundle.devDependencies
           .firstWhere((dependency) => dependency.package == 'json_serializable')
-          .version,
-      equals('6.9.0'),
+          .constraint,
+      equals('^6.7.0'),
     );
     expect(
       modernBundle.devDependencies
           .firstWhere(
             (dependency) => dependency.package == 'retrofit_generator',
           )
-          .version,
-      equals('8.1.2'),
+          .constraint,
+      equals('^9.0.0'),
+    );
+    expect(
+      modernBundle.dependencies
+          .firstWhere((dependency) => dependency.package == 'retrofit')
+          .constraint,
+      equals('^4.5.0'),
+    );
+    expect(
+      modernBundle.devDependencies
+          .firstWhere((dependency) => dependency.package == 'build_runner')
+          .constraint,
+      equals('^2.4.0'),
     );
   });
 
@@ -168,46 +263,52 @@ void main() {
     expect(
       bundle.dependencies
           .firstWhere((dependency) => dependency.package == 'drift')
-          .version,
-      equals('2.32.0'),
+          .constraint,
+      equals('^2.24.0'),
     );
     expect(
       bundle.devDependencies
           .firstWhere((dependency) => dependency.package == 'drift_dev')
-          .version,
-      equals('2.32.0'),
+          .constraint,
+      equals('^2.24.0'),
     );
     expect(
       bundle.dependencies
           .firstWhere((dependency) => dependency.package == 'langchain')
-          .version,
-      equals('0.8.1'),
+          .constraint,
+      equals('>=0.7.0 <0.8.0'),
     );
     expect(
       bundle.dependencies
           .firstWhere((dependency) => dependency.package == 'langchain_openai')
-          .version,
-      equals('0.8.1+1'),
+          .constraint,
+      equals('>=0.7.0 <0.8.0'),
     );
     expect(
       bundle.dependencies
           .firstWhere((dependency) => dependency.package == 'retrofit')
-          .version,
-      equals('4.9.2'),
+          .constraint,
+      equals('^4.9.0'),
     );
     expect(
       bundle.devDependencies
           .firstWhere((dependency) => dependency.package == 'build_runner')
-          .version,
-      equals('2.13.0'),
+          .constraint,
+      equals('^2.6.0'),
+    );
+    expect(
+      bundle.devDependencies
+          .firstWhere((dependency) => dependency.package == 'json_serializable')
+          .constraint,
+      equals('^6.10.0'),
     );
     expect(
       bundle.devDependencies
           .firstWhere(
             (dependency) => dependency.package == 'retrofit_generator',
           )
-          .version,
-      equals('10.2.3'),
+          .constraint,
+      equals('^10.0.0'),
     );
   });
 
@@ -222,14 +323,14 @@ void main() {
     expect(
       bundle.devDependencies
           .firstWhere((dependency) => dependency.package == 'drift_dev')
-          .version,
-      equals('2.32.0'),
+          .constraint,
+      equals('^2.24.0'),
     );
     expect(
       bundle.dependencies
           .firstWhere((dependency) => dependency.package == 'langchain_openai')
-          .version,
-      equals('0.8.1+1'),
+          .constraint,
+      equals('>=0.7.0 <0.8.0'),
     );
   });
 
@@ -241,12 +342,12 @@ void main() {
       ),
     );
 
-    expect(bundle.name, equals('legacy'));
+    expect(bundle.name, equals('transitional'));
     expect(
       bundle.devDependencies
           .firstWhere((dependency) => dependency.package == 'drift_dev')
-          .version,
-      equals('2.20.3'),
+          .constraint,
+      equals('^2.10.0'),
     );
   });
 }

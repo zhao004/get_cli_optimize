@@ -96,5 +96,7 @@ void main() {
     expect(sample.content, contains('ChatOpenAIOptions(model: model)'));
     expect(sample.content, contains('ChatPromptTemplate.fromTemplates'));
     expect(sample.content, contains('StringOutputParser()'));
+    expect(sample.content, contains('await chain.invoke'));
+    expect(sample.content, contains('as String'));
   });
 }

@@ -29,7 +29,7 @@ class AppAiAgent {
     ]);
 
     final chain = prompt | _chatModel | const StringOutputParser();
-    return chain.invoke({'input': input});
+    return (await chain.invoke({'input': input})) as String;
   }
 }
 ''';

@@ -26,7 +26,7 @@ class InstallCommand extends Command {
             : runPubGet;
       } else {
         runPubGet = await PubspecUtils.addDependencies(packageInfo.first,
-                version: packageInfo[1], isDev: isDev, runPubGet: false)
+                constraint: packageInfo[1], isDev: isDev, runPubGet: false)
             ? true
             : runPubGet;
       }

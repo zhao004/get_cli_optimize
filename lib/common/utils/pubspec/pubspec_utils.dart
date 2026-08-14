@@ -59,12 +59,13 @@ class PubspecUtils {
   static bool? get extraFolder => _extraFolder.value;
 
   static Future<bool> addDependencies(String package,
-      {String? version,
+      {String? constraint,
       bool isDev = false,
       bool runPubGet = true,
       bool promptIfExists = true}) async {
     if (containsPackage(package, isDev)) {
-      if (version != null && dependencyVersion(package, isDev) == version) {
+      if (constraint != null &&
+          dependencyVersion(package, isDev) == constraint) {
         return false;
       }
 
@@ -88,8 +89,8 @@ class PubspecUtils {
 
     String packageName = package;
 
-    if (version != null && version.isNotEmpty) {
-      packageName = '$package:$version';
+    if (constraint != null && constraint.isNotEmpty) {
+      packageName = '$package:$constraint';
     }
 
     if (isDev) {
@@ -119,20 +120,58 @@ class PubspecUtils {
   }
 
   static Future<bool> ensureDependency(String package,
-      {required String version,
+      {required String constraint,
       bool isDev = false,
       bool runPubGet = true}) async {
-    if (dependencyVersion(package, isDev) == version) {
+    if (dependencyVersion(package, isDev) == constraint) {
       return false;
     }
 
     return addDependencies(
       package,
-      version: version,
+      constraint: constraint,
       isDev: isDev,
       runPubGet: runPubGet,
       promptIfExists: false,
     );
+  }
+
+  static Future<bool> ensureDependencies(
+    List<PubspecDependencyRequest> dependencies, {
+    bool runPubGet = true,
+  }) async {
+    final pendingPackages = <String>[];
+    final updatedDependencies = <PubspecDependencyRequest>[];
+
+    for (final dependency in dependencies) {
+      if (dependencyVersion(dependency.package, dependency.isDev) ==
+          dependency.constraint) {
+        continue;
+      }
+
+      final packageName = dependency.isDev
+          ? 'dev:${dependency.package}:${dependency.constraint}'
+          : '${dependency.package}:${dependency.constraint}';
+      pendingPackages.add(packageName);
+      updatedDependencies.add(dependency);
+    }
+
+    if (pendingPackages.isEmpty) {
+      return false;
+    }
+
+    await ShellUtils.addPackages(pendingPackages);
+    if (runPubGet) {
+      await ShellUtils.pubGet();
+    }
+
+    for (final dependency in updatedDependencies) {
+      LogService.success(
+        LocaleKeys.sucess_package_installed.trArgs([dependency.package]),
+      );
+    }
+
+    return true;
   }
 
   static Future<void> removeDependencies(String package,
@@ -233,6 +272,18 @@ class PubspecUtils {
   //   var value = CliYamlToString().toYamlString(pub.toJson());
   //   _pubspecFile.writeAsStringSync(value);
   // }
+}
+
+class PubspecDependencyRequest {
+  final String package;
+  final String constraint;
+  final bool isDev;
+
+  const PubspecDependencyRequest({
+    required this.package,
+    required this.constraint,
+    required this.isDev,
+  });
 }
 
 /// avoids multiple reads in one file

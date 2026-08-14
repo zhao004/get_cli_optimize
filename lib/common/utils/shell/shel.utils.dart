@@ -20,15 +20,22 @@ class ShellUtils {
   }
 
   static Future<void> addPackage(String package) async {
-    final pubCommand = resolvePubCommand();
-    LogService.info('Adding package $package …');
-    await run('$pubCommand add $package', verbose: true);
+    await addPackages([package]);
+  }
+
+  static Future<void> addPackages(List<String> packages) async {
+    if (packages.isEmpty) {
+      return;
+    }
+
+    LogService.info('Adding packages ${packages.join(', ')} …');
+    await run(resolveAddPackagesCommand(packages), verbose: true);
   }
 
   static Future<void> removePackage(String package) async {
     final pubCommand = resolvePubCommand();
     LogService.info('Removing package $package …');
-    await run('$pubCommand remove $package', verbose: true);
+    await run("$pubCommand remove '${_shellEscape(package)}'", verbose: true);
   }
 
   static Future<void> runBuildRunner() async {
@@ -91,6 +98,21 @@ class ShellUtils {
     return 'dart run build_runner build --delete-conflicting-outputs';
   }
 
+  static String resolveAddPackagesCommand(
+    List<String> packages, [
+    String? pubspecContent,
+  ]) {
+    if (packages.isEmpty) {
+      throw ArgumentError.value(packages, 'packages', 'Cannot be empty');
+    }
+
+    final pubCommand = resolvePubCommand(pubspecContent);
+    final formattedPackages = packages
+        .map((package) => '"${_shellEscape(package)}"')
+        .join(' ');
+    return '$pubCommand add $formattedPackages';
+  }
+
   static bool _hasFlutterDependency(YamlMap yaml) {
     for (final sectionName in ['dependencies', 'dev_dependencies']) {
       final section = yaml[sectionName];
@@ -107,6 +129,10 @@ class ShellUtils {
     }
 
     return false;
+  }
+
+  static String _shellEscape(String value) {
+    return value.replaceAll(r'\', r'\\').replaceAll('"', r'\"');
   }
 
   static Future<void> flutterCreate(

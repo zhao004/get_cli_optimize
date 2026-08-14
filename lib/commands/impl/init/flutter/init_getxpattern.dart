@@ -30,7 +30,7 @@ Future<void> createInitGetxPattern() async {
   final selectedFeatures = <_FlutterInitFeature>{};
   if (!isServerProject) {
     final dependencyBundle = await _resolveFlutterInitDependencies();
-    selectedFeatures.addAll(_askFlutterInitFeatures());
+    selectedFeatures.addAll(_askFlutterInitFeatures(dependencyBundle));
     await _installFlutterInitDependencies(dependencyBundle, selectedFeatures);
   }
   var initialDirs = isServerProject
@@ -102,17 +102,20 @@ Future<FlutterInitDependencyBundle> _resolveFlutterInitDependencies() async {
 Future<void> _installFlutterInitDependencies(
     FlutterInitDependencyBundle dependencyBundle,
     Set<_FlutterInitFeature> selectedFeatures) async {
-  await installGet(false, '4.7.3');
+  await installGet(false, '>=4.7.3 <5.0.0');
 
-  for (final dependency
-      in _resolveSelectedDependencies(dependencyBundle, selectedFeatures)) {
-    await PubspecUtils.ensureDependency(
-      dependency.package,
-      version: dependency.version,
-      isDev: dependency.isDev,
-      runPubGet: false,
-    );
-  }
+  await PubspecUtils.ensureDependencies(
+    _resolveSelectedDependencies(dependencyBundle, selectedFeatures)
+        .map(
+          (dependency) => PubspecDependencyRequest(
+            package: dependency.package,
+            constraint: dependency.constraint,
+            isDev: dependency.isDev,
+          ),
+        )
+        .toList(),
+    runPubGet: false,
+  );
 }
 
 List<Directory> _flutterDirectories(Set<_FlutterInitFeature> selectedFeatures) {
@@ -133,20 +136,26 @@ List<Directory> _flutterDirectories(Set<_FlutterInitFeature> selectedFeatures) {
   return directories;
 }
 
-Set<_FlutterInitFeature> _askFlutterInitFeatures() {
+Set<_FlutterInitFeature> _askFlutterInitFeatures(
+  FlutterInitDependencyBundle dependencyBundle,
+) {
+  final availableOptions = _flutterInitFeatureOptions
+      .where(
+        (option) => _supportsFeature(dependencyBundle, option.feature),
+      )
+      .toList();
+
   final answer = MultiSelectMenu(
-    _flutterInitFeatureOptions.map((option) => option.label).toList(),
+    availableOptions.map((option) => option.label).toList(),
     title: 'Select optional integrations',
     description: 'Use ↑/↓ to move, Space to toggle, Enter to confirm.',
     initiallySelectedIndexes: List<int>.generate(
-      _flutterInitFeatureOptions.length,
+      availableOptions.length,
       (index) => index,
     ),
   ).choose();
 
-  return answer.indexes
-      .map((index) => _flutterInitFeatureOptions[index].feature)
-      .toSet();
+  return answer.indexes.map((index) => availableOptions[index].feature).toSet();
 }
 
 List<FlutterInitDependencySpec> _resolveSelectedDependencies(
@@ -172,6 +181,19 @@ bool _shouldRunBuildRunner(Set<_FlutterInitFeature> selectedFeatures) {
   }
 
   return false;
+}
+
+bool _supportsFeature(
+  FlutterInitDependencyBundle dependencyBundle,
+  _FlutterInitFeature feature,
+) {
+  for (final package in _packagesForFeature(feature)) {
+    if (!dependencyBundle.supportsPackage(package)) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 bool _usesBuildRunner(_FlutterInitFeature feature) {
