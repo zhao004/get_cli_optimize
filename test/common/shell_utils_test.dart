@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:get_cli/common/utils/shell/shel.utils.dart';
+import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
 void main() {
@@ -33,6 +36,18 @@ dependencies:
     expect(
       ShellUtils.resolveBuildRunnerCommand(),
       equals('dart run build_runner build --delete-conflicting-outputs'),
+    );
+  });
+
+  test('resolves a directly executable dart binary', () {
+    // 测试本身由 dart 运行，因此应能解析出可直调的真实 dart 可执行文件
+    final dartExecutable = ShellUtils.resolveDartExecutable();
+
+    expect(dartExecutable, isNotNull);
+    expect(File(dartExecutable!).existsSync(), isTrue);
+    expect(
+      p.basenameWithoutExtension(dartExecutable).toLowerCase(),
+      equals('dart'),
     );
   });
 

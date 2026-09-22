@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:path/path.dart' as p;
 import 'package:process_run/shell_run.dart';
 import 'package:yaml/yaml.dart';
 
@@ -29,7 +30,118 @@ class ShellUtils {
     }
 
     LogService.info('Adding packages ${packages.join(', ')} …');
-    await run(resolveAddPackagesCommand(packages), verbose: true);
+
+    final dartExecutable = resolveDartExecutable(
+      preferFlutterSdk: resolvePubCommand() == 'flutter pub',
+    );
+    if (dartExecutable == null) {
+      // 无法定位可直调的 dart 时退回 shell 方式
+      await run(resolveAddPackagesCommand(packages), verbose: true);
+      return;
+    }
+
+    // 以参数列表直调 dart，避免经 cmd 解析时
+    // `^` 被吞掉、`<`/`>` 被当作重定向，导致版本约束被破坏
+    final arguments = ['pub', 'add', ...packages];
+    LogService.info('Running `dart ${arguments.join(' ')}` …');
+    final process = await Process.start(
+      dartExecutable,
+      arguments,
+      mode: ProcessStartMode.inheritStdio,
+    );
+    final exitCode = await process.exitCode;
+    if (exitCode != 0) {
+      throw CliException(
+        '`dart ${arguments.join(' ')}` failed with exit code $exitCode',
+      );
+    }
+  }
+
+  /// 解析可直接以参数列表调用的 dart 可执行文件。
+  /// Windows 下 `flutter`/`dart` 均为 .bat，任何经 cmd 的命令行解析都会
+  /// 破坏版本约束字符，因此优先使用真实的 dart 可执行文件。
+  /// [preferFlutterSdk] 为 true 时仅返回 Flutter SDK 内置的 dart（可解析 sdk: flutter 依赖）。
+  static String? resolveDartExecutable({bool preferFlutterSdk = false}) {
+    final candidates = _dartExecutableCandidates;
+    if (!preferFlutterSdk) {
+      return candidates.isEmpty ? null : candidates.first;
+    }
+
+    // Flutter 项目必须使用 Flutter SDK 内置的 dart 才能解析 sdk: flutter 依赖
+    for (final candidate in candidates) {
+      if (_isFlutterSdkDart(candidate)) {
+        return candidate;
+      }
+    }
+
+    return null;
+  }
+
+  static List<String> get _dartExecutableCandidates =>
+      _cachedDartExecutableCandidates ??= _findDartExecutableCandidates();
+
+  static List<String>? _cachedDartExecutableCandidates;
+
+  static List<String> _findDartExecutableCandidates() {
+    final candidates = <String>{};
+
+    final resolved = Platform.resolvedExecutable;
+    if (_isDartExecutable(resolved)) {
+      candidates.add(resolved);
+    }
+
+    for (final directory in _pathDirectories()) {
+      final candidate = _dartExecutableIn(directory);
+      if (candidate != null) {
+        candidates.add(candidate);
+      }
+    }
+
+    return candidates.toList();
+  }
+
+  static Iterable<String> _pathDirectories() {
+    final pathVariable =
+        Platform.environment['PATH'] ?? Platform.environment['Path'] ?? '';
+    return pathVariable
+        .split(Platform.isWindows ? ';' : ':')
+        .map((entry) => entry.trim())
+        .where((entry) => entry.isNotEmpty);
+  }
+
+  static String? _dartExecutableIn(String directory) {
+    if (Platform.isWindows) {
+      final direct = p.join(directory, 'dart.exe');
+      if (File(direct).existsSync()) {
+        return direct;
+      }
+      // Flutter SDK 布局：<flutter>/bin/dart.bat 对应的真实 dart 位于
+      // <flutter>/bin/cache/dart-sdk/bin/dart.exe
+      final sdkDart = p.join(directory, 'cache', 'dart-sdk', 'bin', 'dart.exe');
+      if (File(p.join(directory, 'dart.bat')).existsSync() &&
+          File(sdkDart).existsSync()) {
+        return sdkDart;
+      }
+      return null;
+    }
+
+    final direct = p.join(directory, 'dart');
+    return File(direct).existsSync() ? direct : null;
+  }
+
+  static bool _isDartExecutable(String path) {
+    return File(path).existsSync() &&
+        p.basenameWithoutExtension(path).toLowerCase() == 'dart';
+  }
+
+  /// 判断 dart 是否来自 Flutter SDK（<flutter>/bin/cache/dart-sdk/bin/dart）
+  static bool _isFlutterSdkDart(String dartPath) {
+    final flutterBin = p.dirname(p.dirname(p.dirname(p.dirname(dartPath))));
+    final flutterExecutable = p.join(
+      flutterBin,
+      Platform.isWindows ? 'flutter.bat' : 'flutter',
+    );
+    return File(flutterExecutable).existsSync();
   }
 
   static Future<void> removePackage(String package) async {
