@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import '../../../../common/menu/menu.dart';
+import '../../../../common/utils/flutter/flutter_init_features.dart';
 import '../../../../common/utils/flutter/flutter_toolchain.dart';
 import '../../../../common/utils/logger/log_utils.dart';
 import '../../../../common/utils/pubspec/pubspec_utils.dart';
@@ -27,10 +27,12 @@ Future<void> createInitGetxPattern() async {
 
   var isServerProject = PubspecUtils.isServerProject;
   var httpFileName = _defaultHttpClientFileName;
-  final selectedFeatures = <_FlutterInitFeature>{};
+  final selectedFeatures = <FlutterInitFeature>{};
   if (!isServerProject) {
     final dependencyBundle = await _resolveFlutterInitDependencies();
-    selectedFeatures.addAll(_askFlutterInitFeatures(dependencyBundle));
+    selectedFeatures.addAll(
+      FlutterInitFeatures.ask(dependencyBundle, initiallySelectAll: true),
+    );
     await _installFlutterInitDependencies(dependencyBundle, selectedFeatures);
   }
   var initialDirs = isServerProject
@@ -38,21 +40,21 @@ Future<void> createInitGetxPattern() async {
       : _flutterDirectories(selectedFeatures);
   GetXMainSample(isServer: isServerProject).create();
   if (!isServerProject) {
-    if (selectedFeatures.contains(_FlutterInitFeature.drift)) {
+    if (selectedFeatures.contains(FlutterInitFeature.drift)) {
       DriftDatabaseEnumSample().create();
       DriftDatabaseTypeSample().create();
       DriftDatabaseTableSample().create();
       DriftDatabaseSample().create();
     }
-    if (selectedFeatures.contains(_FlutterInitFeature.retrofit)) {
+    if (selectedFeatures.contains(FlutterInitFeature.retrofit)) {
       RetrofitHttpSample(
         path: 'lib/app/http/$httpFileName',
       ).create();
     }
-    if (selectedFeatures.contains(_FlutterInitFeature.jsonSerializable)) {
+    if (selectedFeatures.contains(FlutterInitFeature.jsonSerializable)) {
       JsonSerializableModelSample().create();
     }
-    if (selectedFeatures.contains(_FlutterInitFeature.langChain)) {
+    if (selectedFeatures.contains(FlutterInitFeature.langChain)) {
       LangChainAgentSample().create();
     }
   }
@@ -60,7 +62,8 @@ Future<void> createInitGetxPattern() async {
     CreatePageCommand().execute(),
   ]);
   createListDirectory(initialDirs);
-  if (!isServerProject && _shouldRunBuildRunner(selectedFeatures)) {
+  if (!isServerProject &&
+      FlutterInitFeatures.shouldRunBuildRunner(selectedFeatures)) {
     await ShellUtils.runBuildRunner();
   }
 
@@ -101,11 +104,12 @@ Future<FlutterInitDependencyBundle> _resolveFlutterInitDependencies() async {
 
 Future<void> _installFlutterInitDependencies(
     FlutterInitDependencyBundle dependencyBundle,
-    Set<_FlutterInitFeature> selectedFeatures) async {
+    Set<FlutterInitFeature> selectedFeatures) async {
   await installGet(false, '>=4.7.3 <5.0.0');
 
   await PubspecUtils.ensureDependencies(
-    _resolveSelectedDependencies(dependencyBundle, selectedFeatures)
+    FlutterInitFeatures.resolveSelectedDependencies(
+            dependencyBundle, selectedFeatures)
         .map(
           (dependency) => PubspecDependencyRequest(
             package: dependency.package,
@@ -118,152 +122,20 @@ Future<void> _installFlutterInitDependencies(
   );
 }
 
-List<Directory> _flutterDirectories(Set<_FlutterInitFeature> selectedFeatures) {
+List<Directory> _flutterDirectories(Set<FlutterInitFeature> selectedFeatures) {
   final directories = <Directory>[
     ..._flutterBaseDirectories,
   ];
 
-  if (selectedFeatures.contains(_FlutterInitFeature.drift)) {
+  if (selectedFeatures.contains(FlutterInitFeature.drift)) {
     directories.addAll(_flutterDatabaseDirectories);
   }
-  if (selectedFeatures.contains(_FlutterInitFeature.retrofit)) {
+  if (selectedFeatures.contains(FlutterInitFeature.retrofit)) {
     directories.addAll(_flutterHttpDirectories);
   }
-  if (selectedFeatures.contains(_FlutterInitFeature.langChain)) {
+  if (selectedFeatures.contains(FlutterInitFeature.langChain)) {
     directories.addAll(_flutterAiDirectories);
   }
 
   return directories;
 }
-
-Set<_FlutterInitFeature> _askFlutterInitFeatures(
-  FlutterInitDependencyBundle dependencyBundle,
-) {
-  final availableOptions = _flutterInitFeatureOptions
-      .where(
-        (option) => _supportsFeature(dependencyBundle, option.feature),
-      )
-      .toList();
-
-  final answer = MultiSelectMenu(
-    availableOptions.map((option) => option.label).toList(),
-    title: 'Select optional integrations',
-    description: 'Use ↑/↓ to move, Space to toggle, Enter to confirm.',
-    initiallySelectedIndexes: List<int>.generate(
-      availableOptions.length,
-      (index) => index,
-    ),
-  ).choose();
-
-  return answer.indexes.map((index) => availableOptions[index].feature).toSet();
-}
-
-List<FlutterInitDependencySpec> _resolveSelectedDependencies(
-  FlutterInitDependencyBundle dependencyBundle,
-  Set<_FlutterInitFeature> selectedFeatures,
-) {
-  final dependenciesByPackage = <String, FlutterInitDependencySpec>{};
-
-  for (final feature in selectedFeatures) {
-    for (final package in _packagesForFeature(feature)) {
-      dependenciesByPackage[package] = dependencyBundle.dependency(package);
-    }
-  }
-
-  return dependenciesByPackage.values.toList();
-}
-
-bool _shouldRunBuildRunner(Set<_FlutterInitFeature> selectedFeatures) {
-  for (final feature in selectedFeatures) {
-    if (_usesBuildRunner(feature)) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-bool _supportsFeature(
-  FlutterInitDependencyBundle dependencyBundle,
-  _FlutterInitFeature feature,
-) {
-  for (final package in _packagesForFeature(feature)) {
-    if (!dependencyBundle.supportsPackage(package)) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-bool _usesBuildRunner(_FlutterInitFeature feature) {
-  switch (feature) {
-    case _FlutterInitFeature.drift:
-    case _FlutterInitFeature.jsonSerializable:
-    case _FlutterInitFeature.retrofit:
-      return true;
-    case _FlutterInitFeature.langChain:
-      return false;
-  }
-}
-
-Iterable<String> _packagesForFeature(_FlutterInitFeature feature) sync* {
-  if (feature == _FlutterInitFeature.drift) {
-    yield 'build_runner';
-    yield 'drift';
-    yield 'drift_dev';
-    yield 'path_provider';
-    yield 'sqlite3_flutter_libs';
-  }
-
-  if (feature == _FlutterInitFeature.retrofit) {
-    yield 'build_runner';
-    yield 'dio';
-    yield 'retrofit';
-    yield 'retrofit_generator';
-  }
-
-  if (feature == _FlutterInitFeature.jsonSerializable) {
-    yield 'build_runner';
-    yield 'json_annotation';
-    yield 'json_serializable';
-  }
-
-  if (feature == _FlutterInitFeature.langChain) {
-    yield 'langchain';
-    yield 'langchain_openai';
-  }
-}
-
-enum _FlutterInitFeature {
-  drift,
-  jsonSerializable,
-  langChain,
-  retrofit,
-}
-
-class _FlutterInitFeatureOption {
-  final _FlutterInitFeature feature;
-  final String label;
-
-  const _FlutterInitFeatureOption(this.feature, this.label);
-}
-
-const _flutterInitFeatureOptions = [
-  _FlutterInitFeatureOption(
-    _FlutterInitFeature.drift,
-    'Drift database (drift, drift_dev, sqlite3_flutter_libs, path_provider)',
-  ),
-  _FlutterInitFeatureOption(
-    _FlutterInitFeature.jsonSerializable,
-    'JSON serialization (json_annotation, json_serializable)',
-  ),
-  _FlutterInitFeatureOption(
-    _FlutterInitFeature.langChain,
-    'LangChain AI agent (langchain, langchain_openai)',
-  ),
-  _FlutterInitFeatureOption(
-    _FlutterInitFeature.retrofit,
-    'Retrofit HTTP (dio, retrofit, retrofit_generator)',
-  ),
-];
