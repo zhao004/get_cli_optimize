@@ -14,7 +14,7 @@ class FlutterToolchainInfo {
   });
 
   factory FlutterToolchainInfo.fromMachineJson(String source) {
-    final json = jsonDecode(source) as Map<String, dynamic>;
+    final json = jsonDecode(_extractJsonObject(source)) as Map<String, dynamic>;
     return FlutterToolchainInfo(
       flutterVersion: parseVersion(
         json['frameworkVersion'] as String? ??
@@ -23,6 +23,17 @@ class FlutterToolchainInfo {
       dartVersion: parseVersion(json['dartSdkVersion'] as String?),
       channel: json['channel'] as String?,
     );
+  }
+
+  /// 容错提取 machine 输出中的 JSON 对象，避免输出夹带非 JSON
+  /// 提示行时解析失败，导致依赖约束误回退到 legacy 旧版本包。
+  static String _extractJsonObject(String source) {
+    final start = source.indexOf('{');
+    final end = source.lastIndexOf('}');
+    if (start == -1 || end <= start) {
+      return source;
+    }
+    return source.substring(start, end + 1);
   }
 
   static Version? parseVersion(String? value) {

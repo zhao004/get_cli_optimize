@@ -49,21 +49,32 @@ class ShellUtils {
       return null;
     }
 
-    try {
-      final result = await Process.run('flutter', ['--version', '--machine']);
-      if (result.exitCode != 0) {
-        return null;
-      }
-
-      final stdout = result.stdout;
-      if (stdout is! String || stdout.trim().isEmpty) {
-        return null;
-      }
-
-      return FlutterToolchainInfo.fromMachineJson(stdout);
-    } on Exception {
+    final result = await _runFlutterVersionMachine();
+    if (result == null || result.exitCode != 0) {
       return null;
     }
+
+    final stdout = result.stdout;
+    if (stdout is! String || stdout.trim().isEmpty) {
+      return null;
+    }
+
+    return FlutterToolchainInfo.fromMachineJson(stdout);
+  }
+
+  /// Windows 上 flutter 是 flutter.bat，Process.run 无法直接启动裸名 'flutter'，
+  /// 需显式使用带扩展名的可执行文件；失败时逐个候选回退。
+  static Future<ProcessResult?> _runFlutterVersionMachine() async {
+    final candidates =
+        Platform.isWindows ? ['flutter.bat', 'flutter'] : const ['flutter'];
+    for (final candidate in candidates) {
+      try {
+        return await Process.run(candidate, ['--version', '--machine']);
+      } on Exception catch (_) {
+        // 尝试下一个候选
+      }
+    }
+    return null;
   }
 
   static String resolvePubCommand([String? pubspecContent]) {
@@ -89,12 +100,8 @@ class ShellUtils {
     return 'dart pub';
   }
 
-  static String resolveBuildRunnerCommand([String? pubspecContent]) {
-    if (resolvePubCommand(pubspecContent) == 'flutter pub') {
-      return 'flutter pub run build_runner build '
-          '--delete-conflicting-outputs';
-    }
-
+  /// `flutter pub run` 已被 Flutter 弃用，统一改用 dart run 执行 build_runner。
+  static String resolveBuildRunnerCommand() {
     return 'dart run build_runner build --delete-conflicting-outputs';
   }
 
