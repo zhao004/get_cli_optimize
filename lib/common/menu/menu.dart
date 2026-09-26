@@ -1,4 +1,34 @@
 import 'package:dart_console/dart_console.dart';
+import 'package:meta/meta.dart';
+
+/// 直接写入一行文本。
+/// [Console.writeLine] 会按窗口宽度用空格补齐整行，导致复制菜单内容时
+/// 行尾出现大量空白；菜单每次重绘都会清屏，无需补齐。
+void _writeLine(Console console, String text) {
+  console.write('$text${console.newLine}');
+}
+
+/// 生成单选菜单的选项行（含缩进与前缀，不含颜色）。
+/// 选中与未选中前缀宽度一致时，两种状态的标签列保持对齐。
+@visibleForTesting
+String formatMenuChoiceLine(
+  String label, {
+  required bool selected,
+  required String selectedPrefix,
+  required String unselectedPrefix,
+}) {
+  return '  ${selected ? selectedPrefix : unselectedPrefix} $label';
+}
+
+/// 生成多选菜单的选项行（含缩进、光标与勾选框，不含颜色）。
+@visibleForTesting
+String formatMultiSelectChoiceLine(
+  String label, {
+  required bool highlighted,
+  required bool checked,
+}) {
+  return '  ${highlighted ? '❯' : ' '} ${checked ? '[✓]' : '[ ]'} $label';
+}
 
 class Menu {
   final List<String> choices;
@@ -13,7 +43,7 @@ class Menu {
     this.choices, {
     this.title = '',
     this.description,
-    this.selectedPrefix = '>',
+    this.selectedPrefix = '❯',
     this.unselectedPrefix = ' ',
     this.descriptionPrefix = '',
     this.emphasizeDescription = false,
@@ -173,19 +203,21 @@ class _ConsoleMenu {
 
   void _printHeader() {
     if (title.isNotEmpty) {
+      console.setTextStyle(bold: true);
       console.setForegroundColor(ConsoleColor.brightWhite);
-      console.writeLine(title);
+      _writeLine(console, title);
       console.resetColorAttributes();
     }
     if (description != null && description!.isNotEmpty) {
       if (emphasizeDescription) {
+        console.setTextStyle(bold: true);
         console.setForegroundColor(ConsoleColor.brightYellow);
       }
-      console.writeLine('$descriptionPrefix${description!}');
+      _writeLine(console, '$descriptionPrefix${description!}');
       console.resetColorAttributes();
     }
     if (title.isNotEmpty || (description != null && description!.isNotEmpty)) {
-      console.writeLine();
+      _writeLine(console, '');
     }
   }
 
@@ -198,13 +230,26 @@ class _ConsoleMenu {
 
   void _renderChoices() {
     for (var i = 0; i < choices.length; i++) {
+      final line = formatMenuChoiceLine(
+        choices[i],
+        selected: i == _selectedIndex,
+        selectedPrefix: selectedPrefix,
+        unselectedPrefix: unselectedPrefix,
+      );
       if (i == _selectedIndex) {
+        console.setTextStyle(bold: true);
         console.setForegroundColor(ConsoleColor.brightGreen);
-        console.writeLine('$selectedPrefix ${choices[i]}');
+        _writeLine(console, line);
         console.resetColorAttributes();
       } else {
-        console.writeLine('$unselectedPrefix ${choices[i]}');
+        _writeLine(console, line);
       }
+    }
+
+    if (choices.length > 1) {
+      console.setForegroundColor(ConsoleColor.brightBlack);
+      _writeLine(console, '  ↑/↓ move · Enter confirm');
+      console.resetColorAttributes();
     }
   }
 
@@ -301,13 +346,16 @@ class _ConsoleMultiSelectMenu {
 
   void _printHeader() {
     if (title.isNotEmpty) {
-      console.writeLine(title);
+      console.setTextStyle(bold: true);
+      console.setForegroundColor(ConsoleColor.brightWhite);
+      _writeLine(console, title);
+      console.resetColorAttributes();
     }
     if (description != null && description!.isNotEmpty) {
-      console.writeLine(description!);
+      _writeLine(console, description!);
     }
     if (title.isNotEmpty || (description != null && description!.isNotEmpty)) {
-      console.writeLine();
+      _writeLine(console, '');
     }
   }
 
@@ -320,15 +368,18 @@ class _ConsoleMultiSelectMenu {
 
   void _renderChoices() {
     for (var i = 0; i < choices.length; i++) {
-      final marker = selectedIndexes.contains(i) ? '[√]' : '[ ]';
-      final prefix = i == _cursorIndex ? '>' : ' ';
-      final line = '$prefix $marker ${choices[i]}';
+      final line = formatMultiSelectChoiceLine(
+        choices[i],
+        highlighted: i == _cursorIndex,
+        checked: selectedIndexes.contains(i),
+      );
       if (i == _cursorIndex) {
+        console.setTextStyle(bold: true);
         console.setForegroundColor(ConsoleColor.brightGreen);
-        console.writeLine(line);
+        _writeLine(console, line);
         console.resetColorAttributes();
       } else {
-        console.writeLine(line);
+        _writeLine(console, line);
       }
     }
   }

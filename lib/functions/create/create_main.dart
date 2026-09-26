@@ -27,9 +27,7 @@ Future<bool> createMain() async {
         title: promptLines.isNotEmpty ? promptLines.first : '',
         description: promptDescription,
         descriptionPrefix: '! ',
-        emphasizeDescription: true,
-        selectedPrefix: '›',
-        unselectedPrefix: ' ');
+        emphasizeDescription: true);
     final result = menu.choose();
     if (result.index == 1) {
       LogService.info(LocaleKeys.info_no_file_overwritten.tr);
