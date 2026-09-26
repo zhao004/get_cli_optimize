@@ -7,6 +7,7 @@ import '../../../../core/locales.g.dart';
 import '../../../interface/command.dart';
 import 'init_getxpattern.dart';
 import 'init_katteko.dart';
+import 'init_riverpod.dart';
 import 'init_signals.dart';
 
 class InitCommand extends Command {
@@ -19,6 +20,7 @@ class InitCommand extends Command {
       'GetX Pattern (by Kauê)',
       'CLEAN (by Arktekko)',
       'Signals Pattern (get_it + go_router)',
+      'Riverpod Pattern (riverpod_generator + get_it + go_router)',
     ], title: 'Which architecture do you want to use?');
     final result = menu.choose();
 
@@ -27,8 +29,10 @@ class InitCommand extends Command {
         await createInitGetxPattern();
       case 1:
         await createInitKatekko();
-      default:
+      case 2:
         await createInitSignalsPattern();
+      case 3:
+        await createInitRiverpodPattern();
     }
     if (!PubspecUtils.isServerProject) {
       await ShellUtils.pubGet();

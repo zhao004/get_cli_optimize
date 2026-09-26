@@ -116,7 +116,7 @@ Using to generate a new project, you can choose between [Flutter](https://github
 ```
 
 Use this command with care it will overwrite all files in the lib folder.
-It allows you to choose between two structures, [getx_pattern](https://kauemurakami.github.io/getx_pattern/) and [clean](https://github.com/Katekko/ekko_app).
+It allows you to choose between four structures: [getx_pattern](https://kauemurakami.github.io/getx_pattern/), [clean](https://github.com/Katekko/ekko_app), signals pattern (get_it + go_router), and riverpod pattern (riverpod_generator + get_it + go_router).
 
 ### Create page
 

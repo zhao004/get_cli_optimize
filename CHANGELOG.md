@@ -1,3 +1,10 @@
+## [Unreleased]
+
+### Added
+
+- `get init`: add Riverpod Pattern architecture (riverpod_generator + get_it + go_router)
+  with optional Drift/JSON/Retrofit/LangChain integrations and riverpod_lint setup.
+
 ## [1.9.1]
 
 - Fix yaml parse error

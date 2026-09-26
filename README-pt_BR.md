@@ -117,7 +117,7 @@ Usando esse comando parar gerar um novo projeto, você pode escolher entre [Flut
 ```
 
 Use este comando com cuidado, pois ele sobrescreverá todos os arquivos na pasta lib. 
-Ele permite que você escolha entre duas estruturas, [getx_pattern](https://kauemurakami.github.io/getx_pattern/) e [clean](https://github.com/Katekko/ekko_app).
+Ele permite que você escolha entre quatro estruturas: [getx_pattern](https://kauemurakami.github.io/getx_pattern/), [clean](https://github.com/Katekko/ekko_app), signals pattern (get_it + go_router) e riverpod pattern (riverpod_generator + get_it + go_router).
 
 ### Criar uma Page
 
