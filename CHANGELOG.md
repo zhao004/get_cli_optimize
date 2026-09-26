@@ -4,6 +4,8 @@
 
 - `get init`: add Riverpod Pattern architecture (riverpod_generator + get_it + go_router)
   with optional Drift/JSON/Retrofit/LangChain integrations and riverpod_lint setup.
+- `get init` and `get create project`: add an explicit Exit option to the
+  interactive menus.
 
 ## [1.9.1]
 

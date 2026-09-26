@@ -4,6 +4,7 @@ import 'package:path/path.dart' as p;
 import 'package:recase/recase.dart';
 
 import '../../../../common/menu/menu.dart';
+import '../../../../common/utils/logger/log_utils.dart';
 import '../../../../common/utils/pubspec/pubspec_utils.dart';
 import '../../../../common/utils/shell/shel.utils.dart';
 import '../../../../common/utils/terminal/prompt_utils.dart';
@@ -23,8 +24,14 @@ class CreateProjectCommand extends Command {
     final menu = Menu([
       'Flutter Project',
       'Get Server',
+      'Exit',
     ], title: 'Select which type of project you want to create ?');
     final result = menu.choose();
+    if (result.index == 2) {
+      // 显式退出：不创建目录，也不执行任何初始化
+      LogService.info('Project creation cancelled.', false, false);
+      return;
+    }
     String? nameProject = name;
     if (name == '.') {
       nameProject = PromptUtils.ask(LocaleKeys.ask_name_to_project.tr);

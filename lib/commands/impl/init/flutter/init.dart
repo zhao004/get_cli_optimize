@@ -21,6 +21,7 @@ class InitCommand extends Command {
       'CLEAN (by Arktekko)',
       'Signals Pattern (get_it + go_router)',
       'Riverpod Pattern (riverpod_generator + get_it + go_router)',
+      'Exit',
     ], title: 'Which architecture do you want to use?');
     final result = menu.choose();
 
@@ -33,6 +34,10 @@ class InitCommand extends Command {
         await createInitSignalsPattern();
       case 3:
         await createInitRiverpodPattern();
+      case 4:
+        // 显式退出：不生成任何结构，也不触发 pub get
+        LogService.info('Init cancelled.', false, false);
+        return;
     }
     if (!PubspecUtils.isServerProject) {
       await ShellUtils.pubGet();
